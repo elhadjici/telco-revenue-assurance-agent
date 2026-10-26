@@ -1,0 +1,1712 @@
+scan_timestamp: '2026-10-26T21:02:31.673510+00:00'
+namespace: telco-revenue-assurance-agent
+overall_status: degraded
+scan_context: Fresh read-only full namespace baseline before training and redeployment;
+  no cluster mutations, model calls, or E2E requests.
+unhealthy_resources:
+- name: prediction-tools
+  kind: Deployment
+  brief_reason: '0/1 ready; observed generation 2 of 2. 0/24 nodes are available:
+    persistentvolumeclaim "telco-model-feature-artifacts" not found. not found'
+  debug_attempts: 1
+- name: prediction-tools-6597d778f7-t9rmr
+  kind: Pod
+  pod_status: Pending
+  brief_reason: '0/24 nodes are available: persistentvolumeclaim "telco-model-feature-artifacts"
+    not found. not found'
+  debug_attempts: 0
+- name: prediction-tools-795b97d96c-k7dvl
+  kind: Pod
+  pod_status: Pending
+  brief_reason: '0/24 nodes are available: persistentvolumeclaim "telco-model-feature-artifacts"
+    not found. not found'
+  debug_attempts: 0
+- name: prediction-tools
+  kind: Service
+  brief_reason: 0 ready endpoint addresses.
+  debug_attempts: 0
+- name: churn-prediction
+  kind: InferenceService
+  brief_reason: Expected resource absent.
+  debug_attempts: 0
+- name: fraud-prediction
+  kind: InferenceService
+  brief_reason: Expected resource absent.
+  debug_attempts: 0
+- name: starlink-qoe
+  kind: InferenceService
+  brief_reason: Expected resource absent.
+  debug_attempts: 0
+- name: telco-model-feature-artifacts
+  kind: PersistentVolumeClaim
+  brief_reason: Expected resource absent.
+  debug_attempts: 0
+- name: telco-churn-model-auth
+  kind: Secret
+  brief_reason: Expected resource absent.
+  debug_attempts: 0
+- name: telco-churn-model-storage
+  kind: Secret
+  brief_reason: Expected resource absent.
+  debug_attempts: 0
+- name: telco-fraud-model-auth
+  kind: Secret
+  brief_reason: Expected resource absent.
+  debug_attempts: 0
+- name: telco-fraud-model-storage
+  kind: Secret
+  brief_reason: Expected resource absent.
+  debug_attempts: 0
+- name: telco-qoe-model-auth
+  kind: Secret
+  brief_reason: Expected resource absent.
+  debug_attempts: 0
+- name: telco-qoe-model-storage
+  kind: Secret
+  brief_reason: Expected resource absent.
+  debug_attempts: 0
+- name: telco-mlserver-qoe
+  kind: ServingRuntime
+  brief_reason: Expected resource absent.
+  debug_attempts: 0
+healthy_resources:
+- api
+- data-fetch-tool
+- frontend
+- ogx-ai
+- pgvector
+- api-6f79f48c6d-schdk
+- data-fetch-tool-5d566f7f98-566xk
+- frontend-79b97c4478-9qt8l
+- frontend-nginx-preflight-3
+- ogx-ai-58c7d85568-sqqsp
+- pgvector-0
+- telco-revenue-assurance-agent-data-generator-plkl7
+- telco-revenue-assurance-agent-db-grants-d568q
+- telco-revenue-assurance-agent-db-role-init-dl922
+- telco-revenue-assurance-agent-migration-g6qvq
+- ogx-ai-data
+- pg-data-pgvector-0
+- api
+- data-fetch-tool
+- frontend
+- ogx-ai
+- pgvector
+- telco-revenue-assurance-agent
+- telco-revenue-assurance-agent-data-generator
+- telco-revenue-assurance-agent-db-grants
+- telco-revenue-assurance-agent-db-role-init
+- telco-revenue-assurance-agent-migration
+- builder
+- churn-model-serving
+- default
+- deployer
+- fraud-model-serving
+- ogx-ai
+- pgvector
+- qoe-model-serving
+- telco-revenue-assurance-agent-api
+- telco-revenue-assurance-agent-data-fetch-tool
+- telco-revenue-assurance-agent-data-generator
+- telco-revenue-assurance-agent-db-grants
+- telco-revenue-assurance-agent-db-role-init
+- telco-revenue-assurance-agent-migration
+- telco-revenue-assurance-agent-oauth-proxy
+- telco-revenue-assurance-agent-prediction-tools
+- telco-revenue-assurance-agent-api-ingress
+- telco-revenue-assurance-agent-churn-prediction-ingress
+- telco-revenue-assurance-agent-data-fetch-ingress
+- telco-revenue-assurance-agent-database-ingress
+- telco-revenue-assurance-agent-default-deny-ingress
+- telco-revenue-assurance-agent-fraud-prediction-ingress
+- telco-revenue-assurance-agent-frontend-ingress
+- telco-revenue-assurance-agent-llm-ingress
+- telco-revenue-assurance-agent-ogx-ingress
+- telco-revenue-assurance-agent-prediction-tools-ingress
+- telco-revenue-assurance-agent-starlink-qoe-ingress
+- telco-mlserver-lightgbm
+- telco-mlserver-onnx
+- vllm-serving-runtime-gpu
+- kube-root-ca.crt
+- odh-kserve-custom-ca-bundle
+- odh-trusted-ca-bundle
+- openshift-service-ca.crt
+- pgvector-initsql
+- run-config
+- telco-revenue-assurance-agent-db-bootstrap
+- vllm-chat-templates
+- builder-dockercfg-s99xg
+- churn-model-serving-dockercfg-bth24
+- default-dockercfg-ndzdg
+- deployer-dockercfg-sndm8
+- fraud-model-serving-dockercfg-k7lqb
+- ogx-ai-dockercfg-fxcfx
+- ogx-ai-env
+- pgvector
+- pgvector-dockercfg-kt8b6
+- qoe-model-serving-dockercfg-4wrhd
+- sh.helm.release.v1.telco-revenue-assurance-agent.v1
+- telco-api-db
+- telco-data-generator-db
+- telco-data-readonly-db
+- telco-db-bootstrap
+- telco-migration-db
+- telco-oauth-session
+- telco-ogx-db
+- telco-remote-llm
+- telco-revenue-assurance-agent-api-dockercfg-n28b6
+- telco-revenue-assurance-agent-data-fetch-tool-dockercfg-fm662
+- telco-revenue-assurance-agent-data-generator-dockercfg-wztkz
+- telco-revenue-assurance-agent-db-grants-dockercfg-9t2gd
+- telco-revenue-assurance-agent-db-role-init-dockercfg-wvv68
+- telco-revenue-assurance-agent-migration-dockercfg-vxr7c
+- telco-revenue-assurance-agent-oauth-proxy-dockercfg-zg892
+- telco-revenue-assurance-agent-prediction-tools-dockercfg-swq9s
+resources:
+- name: api
+  kind: Deployment
+  status: healthy
+  debug_attempts: 3
+  expected: true
+  uid: aab1e311-d9a4-4ab7-92a6-8c5b82b91abb
+  details: 1/1 ready; observed generation 4 of 4.
+  observed_images:
+    initContainers:
+    - name: wait-for-schema-and-seed
+      image: quay.io/yelias/api:0.1.0-chat-7aedd95bd5ef
+    containers:
+    - name: api
+      image: quay.io/yelias/api:0.1.0-chat-7aedd95bd5ef
+  pods:
+  - api-6f79f48c6d-schdk
+  historical_attempt_records:
+    e2e_attempt_1:
+      result: success
+      scope: reported basic chat/persistence error
+      report: /home/yelias/Desktop/Projects/quickstart-factory/.tmp/telco-revenue-assurance-agent/debug/fix-api.yaml
+      verification: /home/yelias/Desktop/Projects/quickstart-factory/.tmp/telco-revenue-assurance-agent/debug/external-llm-redeploy/final-chat-verification.json
+- name: data-fetch-tool
+  kind: Deployment
+  status: healthy
+  debug_attempts: 1
+  expected: true
+  uid: ff12832c-d776-4f6b-8d1f-0b999719e4dd
+  details: 1/1 ready; observed generation 2 of 2.
+  observed_images:
+    initContainers: []
+    containers:
+    - name: data-fetch-tool
+      image: quay.io/yelias/data-fetch-tool:0.1.0
+  pods:
+  - data-fetch-tool-5d566f7f98-566xk
+- name: frontend
+  kind: Deployment
+  status: healthy
+  debug_attempts: 3
+  expected: true
+  uid: f9ed9c74-2671-47cb-b0dc-267613fc4319
+  details: 1/1 ready; observed generation 4 of 4.
+  observed_images:
+    initContainers: []
+    containers:
+    - name: nginx
+      image: quay.io/yelias/ui:0.1.0
+    - name: oauth-proxy
+      image: registry.redhat.io/openshift4/ose-oauth-proxy-rhel9:v4.19
+  pods:
+  - frontend-79b97c4478-9qt8l
+- name: ogx-ai
+  kind: Deployment
+  status: healthy
+  debug_attempts: 1
+  expected: true
+  uid: e7f1efb6-be7e-4e2d-8966-229824881d91
+  details: 1/1 ready; observed generation 2 of 2.
+  observed_images:
+    initContainers: []
+    containers:
+    - name: ogx-ai
+      image: registry.redhat.io/rhoai/odh-ogx-core-rhel9:v3.5
+  pods:
+  - ogx-ai-58c7d85568-sqqsp
+- name: prediction-tools
+  kind: Deployment
+  status: unhealthy
+  debug_attempts: 1
+  expected: true
+  uid: 170b4552-598f-4557-879c-9a470f81bfb9
+  details: 0/1 ready; observed generation 2 of 2.
+  observed_images:
+    initContainers: []
+    containers:
+    - name: prediction-tools
+      image: quay.io/yelias/prediction-tools:0.1.0
+  pods:
+  - prediction-tools-6597d778f7-t9rmr
+  - prediction-tools-795b97d96c-k7dvl
+  brief_reason: '0/1 ready; observed generation 2 of 2. 0/24 nodes are available:
+    persistentvolumeclaim "telco-model-feature-artifacts" not found. not found'
+- name: pgvector
+  kind: StatefulSet
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 6d96f8bc-cc91-4f56-b7d8-c621d3d0d4d3
+  details: 1/1 ready; observed generation 1 of 1.
+  observed_images:
+    initContainers: []
+    containers:
+    - name: pgvector
+      image: docker.io/pgvector/pgvector:pg17
+  pods:
+  - pgvector-0
+- name: api-6f79f48c6d-schdk
+  kind: Pod
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  uid: 1f232b5b-fd53-4463-8558-a38977135de1
+  pod_status: Running
+  details: Running; Ready=True
+  owner_references:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: ReplicaSet
+    name: api-6f79f48c6d
+    uid: e21a4139-4abb-431d-9c2b-0ca5526be3d3
+  containers:
+  - name: api
+    image: quay.io/yelias/api:0.1.0-chat-7aedd95bd5ef
+    imageID: quay.io/yelias/api@sha256:2edf909d153e6c15519842405148c3482b4cf1a19fa329f1765277344821b029
+    ready: true
+    restartCount: 0
+- name: data-fetch-tool-5d566f7f98-566xk
+  kind: Pod
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  uid: 1d134273-5df0-4637-9c7e-eb57b7c40973
+  pod_status: Running
+  details: Running; Ready=True
+  owner_references:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: ReplicaSet
+    name: data-fetch-tool-5d566f7f98
+    uid: 1a222852-f577-4dde-9b79-782d26a1661a
+  containers:
+  - name: data-fetch-tool
+    image: quay.io/yelias/data-fetch-tool:0.1.0
+    imageID: quay.io/yelias/data-fetch-tool@sha256:5e822b30f921e740a284dd9ba897e35d62cbf750a61cfa67a7d3aec4343a11ce
+    ready: true
+    restartCount: 0
+- name: frontend-79b97c4478-9qt8l
+  kind: Pod
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  uid: 4bfdd829-5705-4838-b162-811ab8bee6ec
+  pod_status: Running
+  details: Running; Ready=True
+  owner_references:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: ReplicaSet
+    name: frontend-79b97c4478
+    uid: 65d37284-a180-46ab-94d6-660f661fa474
+  containers:
+  - name: nginx
+    image: quay.io/yelias/ui:0.1.0
+    imageID: quay.io/yelias/ui@sha256:a2fc501b1057975559837cba740ae42ec058b181e8b917a7678442c130bb76f4
+    ready: true
+    restartCount: 0
+  - name: oauth-proxy
+    image: registry.redhat.io/openshift4/ose-oauth-proxy-rhel9:v4.19
+    imageID: registry.redhat.io/openshift4/ose-oauth-proxy-rhel9@sha256:be730e14961aeeb69c7b10ad2997cf220a01fdee64d9fa2ddb6ee5942eb38e41
+    ready: true
+    restartCount: 0
+- name: frontend-nginx-preflight-3
+  kind: Pod
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  uid: 35980c0d-8ba7-4e5f-acde-6dc2e116b4c2
+  pod_status: Succeeded
+  details: Succeeded; Ready=False
+  owner_references: []
+  containers:
+  - name: nginx
+    image: quay.io/yelias/ui:0.1.0
+    imageID: quay.io/yelias/ui@sha256:a2fc501b1057975559837cba740ae42ec058b181e8b917a7678442c130bb76f4
+    ready: false
+    restartCount: 0
+- name: ogx-ai-58c7d85568-sqqsp
+  kind: Pod
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  uid: 41a8e6dc-6b7e-49f5-9ff2-9a3d575bb242
+  pod_status: Running
+  details: Running; Ready=True
+  owner_references:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: ReplicaSet
+    name: ogx-ai-58c7d85568
+    uid: 4f4bba57-6f5c-4b66-8c30-a418a0f76e27
+  containers:
+  - name: ogx-ai
+    image: registry.redhat.io/rhoai/odh-ogx-core-rhel9:v3.5
+    imageID: registry.redhat.io/rhoai/odh-ogx-core-rhel9@sha256:a96caf4e5dfbe8ee9f1c342f2c1ab7200ce39d6ef464375718ac0313bc97dd5d
+    ready: true
+    restartCount: 0
+- name: pgvector-0
+  kind: Pod
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  uid: 2f9650c8-1b32-49de-bc35-acceae234c49
+  pod_status: Running
+  details: Running; Ready=True
+  owner_references:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: StatefulSet
+    name: pgvector
+    uid: 6d96f8bc-cc91-4f56-b7d8-c621d3d0d4d3
+  containers:
+  - name: pgvector
+    image: docker.io/pgvector/pgvector:pg17
+    imageID: docker.io/pgvector/pgvector@sha256:ac08538c6f8b9904c33c8224c5e5706dbe760aca29db1d096972b4052c22a75d
+    ready: true
+    restartCount: 0
+- name: prediction-tools-6597d778f7-t9rmr
+  kind: Pod
+  status: unhealthy
+  debug_attempts: 0
+  expected: false
+  uid: db8e4d6e-d88a-43ec-bacd-18135ff84e16
+  pod_status: Pending
+  details: Pending; Ready=False
+  owner_references:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: ReplicaSet
+    name: prediction-tools-6597d778f7
+    uid: d3a68706-6193-4eda-b5a9-e9ea9e1b1d48
+  containers: []
+  brief_reason: '0/24 nodes are available: persistentvolumeclaim "telco-model-feature-artifacts"
+    not found. not found'
+- name: prediction-tools-795b97d96c-k7dvl
+  kind: Pod
+  status: unhealthy
+  debug_attempts: 0
+  expected: false
+  uid: b1707517-257c-42a0-bb4b-aa0c2320c6dc
+  pod_status: Pending
+  details: Pending; Ready=False
+  owner_references:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: ReplicaSet
+    name: prediction-tools-795b97d96c
+    uid: 7998b7fe-e2d2-419d-b9fd-846105071c74
+  containers: []
+  brief_reason: '0/24 nodes are available: persistentvolumeclaim "telco-model-feature-artifacts"
+    not found. not found'
+- name: telco-revenue-assurance-agent-data-generator-plkl7
+  kind: Pod
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  uid: e2bee755-a20c-4766-ad77-831b7d026827
+  pod_status: Succeeded
+  details: Succeeded; Ready=False
+  owner_references:
+  - apiVersion: batch/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Job
+    name: telco-revenue-assurance-agent-data-generator
+    uid: dbe2e6b6-8141-4673-92c1-bcc602f62e99
+  containers:
+  - name: load-source-datasets
+    image: quay.io/yelias/data-generator:0.1.0
+    imageID: quay.io/yelias/data-generator@sha256:248c367adff3bc01875cb18e4bf8e8c8836e26bf82c804c26951ef2d96040492
+    ready: false
+    restartCount: 0
+- name: telco-revenue-assurance-agent-db-grants-d568q
+  kind: Pod
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  uid: 124f1c92-4bd7-4dc7-898b-94e7bbc23d51
+  pod_status: Succeeded
+  details: Succeeded; Ready=False
+  owner_references:
+  - apiVersion: batch/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Job
+    name: telco-revenue-assurance-agent-db-grants
+    uid: d897cbf2-6714-4658-a927-baefd405fd1c
+  containers:
+  - name: grant-application-access
+    image: docker.io/pgvector/pgvector:pg17
+    imageID: docker.io/pgvector/pgvector@sha256:ac08538c6f8b9904c33c8224c5e5706dbe760aca29db1d096972b4052c22a75d
+    ready: false
+    restartCount: 0
+- name: telco-revenue-assurance-agent-db-role-init-dl922
+  kind: Pod
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  uid: 94f92909-5c3b-4274-9843-5e237e531a69
+  pod_status: Succeeded
+  details: Succeeded; Ready=False
+  owner_references:
+  - apiVersion: batch/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Job
+    name: telco-revenue-assurance-agent-db-role-init
+    uid: ac442b24-f6f5-4d8a-884b-3dafd39371a3
+  containers:
+  - name: provision-database-roles
+    image: docker.io/pgvector/pgvector:pg17
+    imageID: docker.io/pgvector/pgvector@sha256:ac08538c6f8b9904c33c8224c5e5706dbe760aca29db1d096972b4052c22a75d
+    ready: false
+    restartCount: 0
+- name: telco-revenue-assurance-agent-migration-g6qvq
+  kind: Pod
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  uid: 60d1deab-909b-4c54-8848-9a76dcf5888e
+  pod_status: Succeeded
+  details: Succeeded; Ready=False
+  owner_references:
+  - apiVersion: batch/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Job
+    name: telco-revenue-assurance-agent-migration
+    uid: 3ede1340-7bd0-4e03-b709-aa56a1d4b49b
+  containers:
+  - name: apply-migrations
+    image: quay.io/yelias/api:0.1.0
+    imageID: quay.io/yelias/api@sha256:68bd4cb29e086928816a670ce6530fdbd61f845bc42352ea2857a0be86c2de83
+    ready: false
+    restartCount: 0
+- name: ogx-ai-data
+  kind: PersistentVolumeClaim
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 7491101c-7753-4f0d-bdf4-d4e65cdba99a
+  details: 'Bound; storageClass=gp3-csi; capacity={''storage'': ''2Gi''}'
+- name: pg-data-pgvector-0
+  kind: PersistentVolumeClaim
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 77a511fb-8ba0-4bfd-851d-0daedaaa8ffe
+  details: 'Bound; storageClass=gp3-csi; capacity={''storage'': ''20Gi''}'
+- name: api
+  kind: Service
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 515de2b5-3db5-4d28-b698-12ad72345dc1
+  details: 1 ready endpoint addresses.
+- name: data-fetch-tool
+  kind: Service
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 61e97d38-abc0-4457-9b36-2dea21ca84c1
+  details: 1 ready endpoint addresses.
+- name: frontend
+  kind: Service
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 53535202-d6c4-44c3-9e69-ac688f6a49ed
+  details: 1 ready endpoint addresses.
+- name: ogx-ai
+  kind: Service
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 32493fa1-648a-41fc-ba9f-411baa6064c3
+  details: 1 ready endpoint addresses.
+- name: pgvector
+  kind: Service
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 42cd8edf-0c84-4766-be84-6db561eefa28
+  details: 1 ready endpoint addresses.
+- name: prediction-tools
+  kind: Service
+  status: unhealthy
+  debug_attempts: 0
+  expected: true
+  uid: 19d6c576-746f-47b5-8fb9-b80dafe1c962
+  details: 0 ready endpoint addresses.
+  brief_reason: 0 ready endpoint addresses.
+- name: telco-revenue-assurance-agent
+  kind: Route
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: fb932425-6dbe-49fc-8c5f-82ccc6c956e4
+  details: Admitted=True; service=frontend
+  host: telco-revenue-assurance-agent-telco-revenue-assurance-agent.apps.ai-dev02.kni.syseng.devcluster.openshift.com
+- name: telco-revenue-assurance-agent-data-generator
+  kind: Job
+  status: healthy
+  debug_attempts: 1
+  expected: true
+  uid: dbe2e6b6-8141-4673-92c1-bcc602f62e99
+  details: Complete=True; succeeded=1; failed=0; active=0.
+  completion_time: '2026-10-25T14:23:38Z'
+- name: telco-revenue-assurance-agent-db-grants
+  kind: Job
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: d897cbf2-6714-4658-a927-baefd405fd1c
+  details: Complete=True; succeeded=1; failed=0; active=0.
+  completion_time: '2026-10-25T12:23:14Z'
+- name: telco-revenue-assurance-agent-db-role-init
+  kind: Job
+  status: healthy
+  debug_attempts: 1
+  expected: true
+  uid: ac442b24-f6f5-4d8a-884b-3dafd39371a3
+  details: Complete=True; succeeded=1; failed=0; active=0.
+  completion_time: '2026-10-25T11:37:08Z'
+- name: telco-revenue-assurance-agent-migration
+  kind: Job
+  status: healthy
+  debug_attempts: 1
+  expected: true
+  uid: 3ede1340-7bd0-4e03-b709-aa56a1d4b49b
+  details: Complete=True; succeeded=1; failed=0; active=0.
+  completion_time: '2026-10-25T12:21:19Z'
+- name: builder
+  kind: ServiceAccount
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  uid: 1bce65f5-ee3c-4e64-b61a-50f9ce45dba5
+  details: Exists; object presence observed.
+- name: churn-model-serving
+  kind: ServiceAccount
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: af314b2b-d798-4215-98a1-7cd7c5c22ea0
+  details: Exists; object presence observed.
+- name: default
+  kind: ServiceAccount
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  uid: fc1afaa3-d109-490d-b811-36c48a7a633d
+  details: Exists; object presence observed.
+- name: deployer
+  kind: ServiceAccount
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  uid: 2d292d57-1328-4374-88f9-b5ea7a54dcbb
+  details: Exists; object presence observed.
+- name: fraud-model-serving
+  kind: ServiceAccount
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 3fd3abb2-0bd6-407d-9b3d-3f2c43404096
+  details: Exists; object presence observed.
+- name: ogx-ai
+  kind: ServiceAccount
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 9a8595f2-e07a-4b11-8a06-7366490523ca
+  details: Exists; object presence observed.
+- name: pgvector
+  kind: ServiceAccount
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 6fbe0406-80d1-4f39-b770-6fd057160a22
+  details: Exists; object presence observed.
+- name: qoe-model-serving
+  kind: ServiceAccount
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 0009151d-0f44-4855-8f43-c19a36e7f52d
+  details: Exists; object presence observed.
+- name: telco-revenue-assurance-agent-api
+  kind: ServiceAccount
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 0261809c-ffde-4bd2-9505-00bc7bf43ed7
+  details: Exists; object presence observed.
+- name: telco-revenue-assurance-agent-data-fetch-tool
+  kind: ServiceAccount
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: de24ccff-bc31-432b-8e76-560b2b937137
+  details: Exists; object presence observed.
+- name: telco-revenue-assurance-agent-data-generator
+  kind: ServiceAccount
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 51eeb09c-6354-438e-bbfd-742003570015
+  details: Exists; object presence observed.
+- name: telco-revenue-assurance-agent-db-grants
+  kind: ServiceAccount
+  status: healthy
+  debug_attempts: 1
+  expected: true
+  uid: 0261f719-e5a6-4b7f-acfa-0d4b8c82ff81
+  details: Exists; object presence observed.
+- name: telco-revenue-assurance-agent-db-role-init
+  kind: ServiceAccount
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: c85001e6-b5f3-437e-80d9-961eabefe858
+  details: Exists; object presence observed.
+- name: telco-revenue-assurance-agent-migration
+  kind: ServiceAccount
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 87c58a38-4c6d-48a7-ac01-a6570255f6fe
+  details: Exists; object presence observed.
+- name: telco-revenue-assurance-agent-oauth-proxy
+  kind: ServiceAccount
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 67d09e75-ba60-40a5-b126-ef6006b24d25
+  details: Exists; object presence observed.
+- name: telco-revenue-assurance-agent-prediction-tools
+  kind: ServiceAccount
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 20176df0-d915-40e5-8e30-f25918e2386e
+  details: Exists; object presence observed.
+- name: telco-revenue-assurance-agent-api-ingress
+  kind: NetworkPolicy
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: c72bc1c8-3ff8-4f18-ad27-42cc405bfa5a
+  details: Exists; object presence observed.
+- name: telco-revenue-assurance-agent-churn-prediction-ingress
+  kind: NetworkPolicy
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: da7f7b18-220a-4c10-a3c1-2ac24a873215
+  details: Exists; object presence observed.
+- name: telco-revenue-assurance-agent-data-fetch-ingress
+  kind: NetworkPolicy
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 216e076c-7cc3-4db2-90c8-2cb66ecd20f4
+  details: Exists; object presence observed.
+- name: telco-revenue-assurance-agent-database-ingress
+  kind: NetworkPolicy
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 9823c406-b23b-45d0-bacc-fe3068357522
+  details: Exists; object presence observed.
+- name: telco-revenue-assurance-agent-default-deny-ingress
+  kind: NetworkPolicy
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 12c1c465-e088-4da1-b0e0-f891295a3c0d
+  details: Exists; object presence observed.
+- name: telco-revenue-assurance-agent-fraud-prediction-ingress
+  kind: NetworkPolicy
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: ffe4b436-8ca3-46eb-918e-7213fb4d5c50
+  details: Exists; object presence observed.
+- name: telco-revenue-assurance-agent-frontend-ingress
+  kind: NetworkPolicy
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 91c8bfc4-0dd6-4bba-b5a5-eeb1e784e305
+  details: Exists; object presence observed.
+- name: telco-revenue-assurance-agent-llm-ingress
+  kind: NetworkPolicy
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 3d774c59-7dfc-4af1-ad80-82c493fe471f
+  details: Exists; object presence observed.
+- name: telco-revenue-assurance-agent-ogx-ingress
+  kind: NetworkPolicy
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 8cedaa50-f081-4668-ba7a-870cdeb80d83
+  details: Exists; object presence observed.
+- name: telco-revenue-assurance-agent-prediction-tools-ingress
+  kind: NetworkPolicy
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: e94942bf-549b-45d0-a283-c1ae225bd0e8
+  details: Exists; object presence observed.
+- name: telco-revenue-assurance-agent-starlink-qoe-ingress
+  kind: NetworkPolicy
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: b9d98372-63c0-4b1d-8614-888a214d29da
+  details: Exists; object presence observed.
+- name: telco-mlserver-lightgbm
+  kind: ServingRuntime
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 8e0468de-b114-4a22-8972-81c8b1ed06f0
+  details: Exists. Runtime definition existence does not establish any model predictor
+    readiness.
+- name: telco-mlserver-onnx
+  kind: ServingRuntime
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  uid: 5087e63f-b6f7-4eaa-8025-f11cd9bd93b1
+  details: Exists. Runtime definition existence does not establish any model predictor
+    readiness.
+- name: vllm-serving-runtime-gpu
+  kind: ServingRuntime
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  uid: 9c6935cb-31c8-4a95-97aa-907115bc1042
+  details: Exists. Runtime definition existence does not establish any model predictor
+    readiness.
+- name: kube-root-ca.crt
+  kind: ConfigMap
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  details: Exists; object presence observed.
+- name: odh-kserve-custom-ca-bundle
+  kind: ConfigMap
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  details: Exists; object presence observed.
+- name: odh-trusted-ca-bundle
+  kind: ConfigMap
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  details: Exists; object presence observed.
+- name: openshift-service-ca.crt
+  kind: ConfigMap
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  details: Exists; object presence observed.
+- name: pgvector-initsql
+  kind: ConfigMap
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  details: Exists; object presence observed.
+- name: run-config
+  kind: ConfigMap
+  status: healthy
+  debug_attempts: 1
+  expected: true
+  details: Exists; object presence observed.
+- name: telco-revenue-assurance-agent-db-bootstrap
+  kind: ConfigMap
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  details: Exists; object presence observed.
+- name: vllm-chat-templates
+  kind: ConfigMap
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  details: Exists; object presence observed.
+- name: builder-dockercfg-s99xg
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - .dockercfg
+- name: churn-model-serving-dockercfg-bth24
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - .dockercfg
+- name: default-dockercfg-ndzdg
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - .dockercfg
+- name: deployer-dockercfg-sndm8
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - .dockercfg
+- name: fraud-model-serving-dockercfg-k7lqb
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - .dockercfg
+- name: ogx-ai-dockercfg-fxcfx
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - .dockercfg
+- name: ogx-ai-env
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys: []
+- name: pgvector
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - dbname
+  - host
+  - jdbc-uri
+  - password
+  - port
+  - uri
+  - user
+- name: pgvector-dockercfg-kt8b6
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - .dockercfg
+- name: qoe-model-serving-dockercfg-4wrhd
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - .dockercfg
+- name: sh.helm.release.v1.telco-revenue-assurance-agent.v1
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - release
+- name: telco-api-db
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - DATABASE_URL
+  - password
+- name: telco-data-generator-db
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - DATABASE_URL
+  - password
+- name: telco-data-readonly-db
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - DATABASE_READONLY_URL
+  - password
+- name: telco-db-bootstrap
+  kind: Secret
+  status: healthy
+  debug_attempts: 1
+  expected: true
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - password
+- name: telco-migration-db
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - MIGRATION_DATABASE_URL
+  - password
+- name: telco-oauth-session
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - cookie-secret
+- name: telco-ogx-db
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - OGX_DATABASE_URL
+  - OGX_DB_PASSWORD
+  - OGX_DB_USER
+- name: telco-remote-llm
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: true
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - REMOTE_LLM_API_KEY
+- name: telco-revenue-assurance-agent-api-dockercfg-n28b6
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - .dockercfg
+- name: telco-revenue-assurance-agent-data-fetch-tool-dockercfg-fm662
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - .dockercfg
+- name: telco-revenue-assurance-agent-data-generator-dockercfg-wztkz
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - .dockercfg
+- name: telco-revenue-assurance-agent-db-grants-dockercfg-9t2gd
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - .dockercfg
+- name: telco-revenue-assurance-agent-db-role-init-dockercfg-wvv68
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - .dockercfg
+- name: telco-revenue-assurance-agent-migration-dockercfg-vxr7c
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - .dockercfg
+- name: telco-revenue-assurance-agent-oauth-proxy-dockercfg-zg892
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - .dockercfg
+- name: telco-revenue-assurance-agent-prediction-tools-dockercfg-swq9s
+  kind: Secret
+  status: healthy
+  debug_attempts: 0
+  expected: false
+  details: Exists; key names inspected only. Credential usability was not tested in
+    this scan.
+  data_keys:
+  - .dockercfg
+- name: churn-prediction
+  kind: InferenceService
+  status: unhealthy
+  debug_attempts: 0
+  expected: true
+  brief_reason: Expected resource absent.
+  details: Expected resource absent.
+- name: fraud-prediction
+  kind: InferenceService
+  status: unhealthy
+  debug_attempts: 0
+  expected: true
+  brief_reason: Expected resource absent.
+  details: Expected resource absent.
+- name: starlink-qoe
+  kind: InferenceService
+  status: unhealthy
+  debug_attempts: 0
+  expected: true
+  brief_reason: Expected resource absent.
+  details: Expected resource absent.
+- name: telco-model-feature-artifacts
+  kind: PersistentVolumeClaim
+  status: unhealthy
+  debug_attempts: 0
+  expected: true
+  brief_reason: Expected resource absent.
+  details: Expected resource absent.
+- name: telco-churn-model-auth
+  kind: Secret
+  status: unhealthy
+  debug_attempts: 0
+  expected: true
+  brief_reason: Expected resource absent.
+  details: Expected resource absent.
+- name: telco-churn-model-storage
+  kind: Secret
+  status: unhealthy
+  debug_attempts: 0
+  expected: true
+  brief_reason: Expected resource absent.
+  details: Expected resource absent.
+- name: telco-fraud-model-auth
+  kind: Secret
+  status: unhealthy
+  debug_attempts: 0
+  expected: true
+  brief_reason: Expected resource absent.
+  details: Expected resource absent.
+- name: telco-fraud-model-storage
+  kind: Secret
+  status: unhealthy
+  debug_attempts: 0
+  expected: true
+  brief_reason: Expected resource absent.
+  details: Expected resource absent.
+- name: telco-qoe-model-auth
+  kind: Secret
+  status: unhealthy
+  debug_attempts: 0
+  expected: true
+  brief_reason: Expected resource absent.
+  details: Expected resource absent.
+- name: telco-qoe-model-storage
+  kind: Secret
+  status: unhealthy
+  debug_attempts: 0
+  expected: true
+  brief_reason: Expected resource absent.
+  details: Expected resource absent.
+- name: telco-mlserver-qoe
+  kind: ServingRuntime
+  status: unhealthy
+  debug_attempts: 0
+  expected: true
+  brief_reason: Expected resource absent.
+  details: Expected resource absent.
+missing_resources:
+- name: churn-prediction
+  kind: InferenceService
+  expected: true
+  note: Expected resource absent.
+- name: fraud-prediction
+  kind: InferenceService
+  expected: true
+  note: Expected resource absent.
+- name: starlink-qoe
+  kind: InferenceService
+  expected: true
+  note: Expected resource absent.
+- name: telco-model-feature-artifacts
+  kind: PersistentVolumeClaim
+  expected: true
+  note: Expected resource absent.
+- name: telco-churn-model-auth
+  kind: Secret
+  expected: true
+  note: Expected resource absent.
+- name: telco-churn-model-storage
+  kind: Secret
+  expected: true
+  note: Expected resource absent.
+- name: telco-fraud-model-auth
+  kind: Secret
+  expected: true
+  note: Expected resource absent.
+- name: telco-fraud-model-storage
+  kind: Secret
+  expected: true
+  note: Expected resource absent.
+- name: telco-qoe-model-auth
+  kind: Secret
+  expected: true
+  note: Expected resource absent.
+- name: telco-qoe-model-storage
+  kind: Secret
+  expected: true
+  note: Expected resource absent.
+- name: telco-mlserver-qoe
+  kind: ServingRuntime
+  expected: true
+  note: Expected resource absent.
+changes_since_last_scan:
+- resource: builder
+  kind: ServiceAccount
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; object presence observed.
+- resource: default
+  kind: ServiceAccount
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; object presence observed.
+- resource: deployer
+  kind: ServiceAccount
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; object presence observed.
+- resource: vllm-serving-runtime-gpu
+  kind: ServingRuntime
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists. Runtime definition existence does not establish any model predictor
+    readiness.
+- resource: kube-root-ca.crt
+  kind: ConfigMap
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; object presence observed.
+- resource: odh-kserve-custom-ca-bundle
+  kind: ConfigMap
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; object presence observed.
+- resource: odh-trusted-ca-bundle
+  kind: ConfigMap
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; object presence observed.
+- resource: openshift-service-ca.crt
+  kind: ConfigMap
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; object presence observed.
+- resource: vllm-chat-templates
+  kind: ConfigMap
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; object presence observed.
+- resource: builder-dockercfg-s99xg
+  kind: Secret
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; key names inspected only. Credential usability was not tested in this
+    scan.
+- resource: churn-model-serving-dockercfg-bth24
+  kind: Secret
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; key names inspected only. Credential usability was not tested in this
+    scan.
+- resource: default-dockercfg-ndzdg
+  kind: Secret
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; key names inspected only. Credential usability was not tested in this
+    scan.
+- resource: deployer-dockercfg-sndm8
+  kind: Secret
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; key names inspected only. Credential usability was not tested in this
+    scan.
+- resource: fraud-model-serving-dockercfg-k7lqb
+  kind: Secret
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; key names inspected only. Credential usability was not tested in this
+    scan.
+- resource: ogx-ai-dockercfg-fxcfx
+  kind: Secret
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; key names inspected only. Credential usability was not tested in this
+    scan.
+- resource: pgvector-dockercfg-kt8b6
+  kind: Secret
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; key names inspected only. Credential usability was not tested in this
+    scan.
+- resource: qoe-model-serving-dockercfg-4wrhd
+  kind: Secret
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; key names inspected only. Credential usability was not tested in this
+    scan.
+- resource: sh.helm.release.v1.telco-revenue-assurance-agent.v1
+  kind: Secret
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; key names inspected only. Credential usability was not tested in this
+    scan.
+- resource: telco-revenue-assurance-agent-api-dockercfg-n28b6
+  kind: Secret
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; key names inspected only. Credential usability was not tested in this
+    scan.
+- resource: telco-revenue-assurance-agent-data-fetch-tool-dockercfg-fm662
+  kind: Secret
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; key names inspected only. Credential usability was not tested in this
+    scan.
+- resource: telco-revenue-assurance-agent-data-generator-dockercfg-wztkz
+  kind: Secret
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; key names inspected only. Credential usability was not tested in this
+    scan.
+- resource: telco-revenue-assurance-agent-db-grants-dockercfg-9t2gd
+  kind: Secret
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; key names inspected only. Credential usability was not tested in this
+    scan.
+- resource: telco-revenue-assurance-agent-db-role-init-dockercfg-wvv68
+  kind: Secret
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; key names inspected only. Credential usability was not tested in this
+    scan.
+- resource: telco-revenue-assurance-agent-migration-dockercfg-vxr7c
+  kind: Secret
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; key names inspected only. Credential usability was not tested in this
+    scan.
+- resource: telco-revenue-assurance-agent-oauth-proxy-dockercfg-zg892
+  kind: Secret
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; key names inspected only. Credential usability was not tested in this
+    scan.
+- resource: telco-revenue-assurance-agent-prediction-tools-dockercfg-swq9s
+  kind: Secret
+  previous_status: not previously expected/observed
+  current_status: healthy
+  note: Exists; key names inspected only. Credential usability was not tested in this
+    scan.
+- resource: churn-prediction
+  kind: InferenceService
+  previous_status: missing
+  current_status: unhealthy
+  note: Expected resource absent.
+- resource: fraud-prediction
+  kind: InferenceService
+  previous_status: missing
+  current_status: unhealthy
+  note: Expected resource absent.
+- resource: starlink-qoe
+  kind: InferenceService
+  previous_status: missing
+  current_status: unhealthy
+  note: Expected resource absent.
+- resource: telco-model-feature-artifacts
+  kind: PersistentVolumeClaim
+  previous_status: missing
+  current_status: unhealthy
+  note: Expected resource absent.
+- resource: telco-churn-model-auth
+  kind: Secret
+  previous_status: missing
+  current_status: unhealthy
+  note: Expected resource absent.
+- resource: telco-churn-model-storage
+  kind: Secret
+  previous_status: missing
+  current_status: unhealthy
+  note: Expected resource absent.
+- resource: telco-fraud-model-auth
+  kind: Secret
+  previous_status: missing
+  current_status: unhealthy
+  note: Expected resource absent.
+- resource: telco-fraud-model-storage
+  kind: Secret
+  previous_status: missing
+  current_status: unhealthy
+  note: Expected resource absent.
+- resource: telco-qoe-model-auth
+  kind: Secret
+  previous_status: missing
+  current_status: unhealthy
+  note: Expected resource absent.
+- resource: telco-qoe-model-storage
+  kind: Secret
+  previous_status: missing
+  current_status: unhealthy
+  note: Expected resource absent.
+- resource: telco-mlserver-qoe
+  kind: ServingRuntime
+  previous_status: not previously expected/observed
+  current_status: unhealthy
+  note: Expected resource absent.
+release_metadata:
+  name: telco-revenue-assurance-agent
+  namespace: telco-revenue-assurance-agent
+  revision: 1
+  status: failed
+  last_deployed: '2026-10-21T18:59:55.877600672+03:00'
+  description: "Release \"telco-revenue-assurance-agent\" failed: 3 errors occurred:\n\
+    \t* admission webhook \"inferenceservice.kserve-webhook-server.validator\" denied\
+    \ the request: the 'name' field is not allowed in standard predictor\n\t* admission\
+    \ webhook \"inferenceservice.kserve-webhook-server.validator\" denied the request:\
+    \ the 'name' field is not allowed in standard predictor\n\t* admission webhook\
+    \ \"inferenceservice.kserve-webhook-server.validator\" denied the request: the\
+    \ 'name' field is not allowed in standard predictor\n\n"
+summary:
+  healthy_resources: 92
+  unhealthy_resources: 15
+  missing_expected_resources: 11
+  historical_failed_pods: 4
+  expected_resource_count: 69
+  e2e_executed_this_scan: false
+  expected_healthy_resources: 56
+  expected_unhealthy_resources: 13
+scan_notes:
+- Helm release status remains failed independently of current manually recovered workload
+  health.
+- Existing Secret names/key metadata do not establish usable model/external LLM credentials.
+- All three InferenceServices and model prerequisites remain absent; training and
+  live inference have not run in this scan.
+- Four failed migration Pods are retained as historical artifacts of the deleted prior
+  Job; current migration Job is complete.
+historical_resources:
+- name: telco-revenue-assurance-agent-migration-5mdg8
+  kind: Pod
+  status: historical_failed
+  debug_attempts: 0
+  expected: false
+  uid: 55fabcd7-ddc9-42fc-8f0d-c9c8bc0c6fd9
+  pod_status: Failed
+  details: Failed; Ready=False
+  owner_references: []
+  containers:
+  - name: apply-migrations
+    image: quay.io/yelias/api:0.1.0
+    imageID: quay.io/yelias/api@sha256:68bd4cb29e086928816a670ce6530fdbd61f845bc42352ea2857a0be86c2de83
+    ready: false
+    restartCount: 0
+  brief_reason: Retained failed Pod from a superseded Job; current replacement Job
+    is Complete.
+  actual_pod_phase: Failed
+  owner_job_name: telco-revenue-assurance-agent-migration
+  owner_job_uid: 9549f149-02b7-46a4-9dad-307c952ddf38
+  superseded_by_job_uid: 3ede1340-7bd0-4e03-b709-aa56a1d4b49b
+- name: telco-revenue-assurance-agent-migration-dgc7t
+  kind: Pod
+  status: historical_failed
+  debug_attempts: 0
+  expected: false
+  uid: 5e38719a-8f2f-4e1a-b988-ecf7d7cb1523
+  pod_status: Failed
+  details: Failed; Ready=False
+  owner_references: []
+  containers:
+  - name: apply-migrations
+    image: quay.io/yelias/api:0.1.0
+    imageID: quay.io/yelias/api@sha256:68bd4cb29e086928816a670ce6530fdbd61f845bc42352ea2857a0be86c2de83
+    ready: false
+    restartCount: 0
+  brief_reason: Retained failed Pod from a superseded Job; current replacement Job
+    is Complete.
+  actual_pod_phase: Failed
+  owner_job_name: telco-revenue-assurance-agent-migration
+  owner_job_uid: 9549f149-02b7-46a4-9dad-307c952ddf38
+  superseded_by_job_uid: 3ede1340-7bd0-4e03-b709-aa56a1d4b49b
+- name: telco-revenue-assurance-agent-migration-fqkc7
+  kind: Pod
+  status: historical_failed
+  debug_attempts: 0
+  expected: false
+  uid: 4abb796f-2e7f-4a15-a3f4-6f2897ff1b26
+  pod_status: Failed
+  details: Failed; Ready=False
+  owner_references: []
+  containers:
+  - name: apply-migrations
+    image: quay.io/yelias/api:0.1.0
+    imageID: quay.io/yelias/api@sha256:68bd4cb29e086928816a670ce6530fdbd61f845bc42352ea2857a0be86c2de83
+    ready: false
+    restartCount: 0
+  brief_reason: Retained failed Pod from a superseded Job; current replacement Job
+    is Complete.
+  actual_pod_phase: Failed
+  owner_job_name: telco-revenue-assurance-agent-migration
+  owner_job_uid: 9549f149-02b7-46a4-9dad-307c952ddf38
+  superseded_by_job_uid: 3ede1340-7bd0-4e03-b709-aa56a1d4b49b
+- name: telco-revenue-assurance-agent-migration-rqvqj
+  kind: Pod
+  status: historical_failed
+  debug_attempts: 0
+  expected: false
+  uid: 9c623006-1735-422c-8443-d40c2cd59cf4
+  pod_status: Failed
+  details: Failed; Ready=False
+  owner_references: []
+  containers:
+  - name: apply-migrations
+    image: quay.io/yelias/api:0.1.0
+    imageID: quay.io/yelias/api@sha256:68bd4cb29e086928816a670ce6530fdbd61f845bc42352ea2857a0be86c2de83
+    ready: false
+    restartCount: 0
+  brief_reason: Retained failed Pod from a superseded Job; current replacement Job
+    is Complete.
+  actual_pod_phase: Failed
+  owner_job_name: telco-revenue-assurance-agent-migration
+  owner_job_uid: 9549f149-02b7-46a4-9dad-307c952ddf38
+  superseded_by_job_uid: 3ede1340-7bd0-4e03-b709-aa56a1d4b49b
+historical_evidence:
+  scope: Preserved previous-run evidence, not revalidated during this health scan.
+  previous_scan_timestamp: '2026-10-25T15:48:11Z'
+  previous_state_archive: /home/yelias/Desktop/Projects/quickstart-factory/.tmp/telco-revenue-assurance-agent/debug/deploy-state-before-run.yaml
+  debug_attempt_evidence:
+  - path: .tmp/telco-revenue-assurance-agent/debug/fix-api.yaml
+    resource: api
+    kind: Deployment
+    attempt_keys:
+    - health_attempt_1
+    - health_attempt_2
+    - health_attempt_3
+    - e2e_attempt_1
+  - path: .tmp/telco-revenue-assurance-agent/debug/fix-data-fetch-tool.yaml
+    resource: data-fetch-tool
+    kind: Deployment
+    attempt_keys:
+    - health_attempt_1
+  - path: .tmp/telco-revenue-assurance-agent/debug/fix-frontend.yaml
+    resource: frontend
+    kind: Deployment
+    attempt_keys:
+    - health_attempt_1
+    - health_attempt_2
+    - health_attempt_3
+  - path: .tmp/telco-revenue-assurance-agent/debug/fix-ogx-ai.yaml
+    resource: ogx-ai
+    kind: Deployment
+    attempt_keys:
+    - health_attempt_1
+  - path: .tmp/telco-revenue-assurance-agent/debug/fix-prediction-tools.yaml
+    resource: prediction-tools
+    kind: Deployment
+    attempt_keys:
+    - health_attempt_1
+  - path: .tmp/telco-revenue-assurance-agent/debug/fix-run-config.yaml
+    resource: run-config
+    kind: ConfigMap
+    attempt_keys:
+    - health_attempt_1
+  - path: .tmp/telco-revenue-assurance-agent/debug/fix-telco-db-bootstrap.yaml
+    resource: telco-db-bootstrap
+    kind: Secret
+    attempt_keys:
+    - health_attempt_1
+  - path: .tmp/telco-revenue-assurance-agent/debug/fix-telco-revenue-assurance-agent-data-generator.yaml
+    resource: telco-revenue-assurance-agent-data-generator
+    kind: Job
+    attempt_keys:
+    - health_attempt_1
+  - path: .tmp/telco-revenue-assurance-agent/debug/fix-telco-revenue-assurance-agent-db-grants.yaml
+    resource: telco-revenue-assurance-agent-db-grants
+    kind: ServiceAccount
+    attempt_keys:
+    - health_attempt_1
+  - path: .tmp/telco-revenue-assurance-agent/debug/fix-telco-revenue-assurance-agent-db-role-init.yaml
+    resource: telco-revenue-assurance-agent-db-role-init
+    kind: Job
+    attempt_keys:
+    - health_attempt_1
+  - path: .tmp/telco-revenue-assurance-agent/debug/fix-telco-revenue-assurance-agent-migration.yaml
+    resource: telco-revenue-assurance-agent-migration
+    kind: Job
+    attempt_keys:
+    - health_attempt_1
+  seed_observation:
+    uid: dbe2e6b6-8141-4673-92c1-bcc602f62e99
+    completion_observed: true
+    observed_at: '2026-10-25T15:16:59Z'
+    completion_time: '2026-10-25T14:23:38Z'
+    details: 1 succeeded; 0 failed; 0 active.
+  e2e_results:
+    original_planned_cases_snapshot: /home/yelias/Desktop/Projects/quickstart-factory/.tmp/telco-revenue-assurance-agent/debug/e2e-results.yaml
+    original_scope: Full grounded/scoring/browser journeys remain incomplete; original
+      timestamped outcomes preserved.
+    supplemental_external_llm_chat:
+      status: PASS_SCOPED_EXTERNAL_LLM_CHAT_FIX
+      completed_at: '2026-10-25T15:50:48.091095+00:00'
+      namespace: telco-revenue-assurance-agent
+      scope: internal frontend nginx proxy -> API -> OGX -> configured external LLM
+      public_browser_oauth: NOT_RUN
+      grounded_prediction_scoring: BLOCKED_MISSING_REAL_MODEL_INPUTS
+      image: quay.io/yelias/api:0.1.0-chat-7aedd95bd5ef
+      manifest_digest: sha256:2edf909d153e6c15519842405148c3482b4cf1a19fa329f1765277344821b029
+      ready_api_pods:
+      - api-6f79f48c6d-schdk
+      focused_local_checks_passed: 39
+      checks:
+      - name: 1-reclaim
+        status: PASS
+        observed_at: '2026-10-25T15:49:38.231356+00:00'
+        http_status: 200
+        session_id: 208928ea-bdc8-4f55-9b3a-334835594f35
+        request_id: f8c74ce7-800d-4747-94c6-b196d6a59cd3
+        response_id: resp_1b5add35-0c11-4142-ac06-b767ff46c5b3
+        previous_response_id: null
+        stored_external_model: remote-llm/llama-3-3-70b-instruct-w8a8
+        evidence: /home/yelias/Desktop/Projects/quickstart-factory/.tmp/telco-revenue-assurance-agent/debug/external-llm-redeploy/chat-verification/post-fix-chat/1-reclaim.latest.json
+      - name: 2-replay
+        status: PASS
+        observed_at: '2026-10-25T15:50:01.323693+00:00'
+        http_status: 200
+        session_id: 208928ea-bdc8-4f55-9b3a-334835594f35
+        request_id: f8c74ce7-800d-4747-94c6-b196d6a59cd3
+        response_id: resp_1b5add35-0c11-4142-ac06-b767ff46c5b3
+        previous_response_id: null
+        stored_external_model: remote-llm/llama-3-3-70b-instruct-w8a8
+        evidence: /home/yelias/Desktop/Projects/quickstart-factory/.tmp/telco-revenue-assurance-agent/debug/external-llm-redeploy/chat-verification/post-fix-chat/2-replay.latest.json
+      - name: 3-context
+        status: PASS
+        observed_at: '2026-10-25T15:50:29.420257+00:00'
+        http_status: 200
+        session_id: 208928ea-bdc8-4f55-9b3a-334835594f35
+        request_id: b778c074-c417-45f3-81f0-16cafad55268
+        response_id: resp_3ddc59ea-94da-4cd5-9141-05518643e04f
+        previous_response_id: resp_1b5add35-0c11-4142-ac06-b767ff46c5b3
+        stored_external_model: remote-llm/llama-3-3-70b-instruct-w8a8
+        evidence: /home/yelias/Desktop/Projects/quickstart-factory/.tmp/telco-revenue-assurance-agent/debug/external-llm-redeploy/chat-verification/post-fix-chat/3-context.latest.json
+      - name: 4-hi
+        status: PASS
+        observed_at: '2026-10-25T15:50:48.091095+00:00'
+        http_status: 200
+        session_id: 82b03c84-14bf-42e2-90ac-d567e995b7f0
+        request_id: c21723e0-4e5c-44f5-9e89-0c392d44a8f5
+        response_id: resp_3bc316c9-adb2-40ac-9130-301ac080d2cf
+        previous_response_id: null
+        stored_external_model: remote-llm/llama-3-3-70b-instruct-w8a8
+        evidence: /home/yelias/Desktop/Projects/quickstart-factory/.tmp/telco-revenue-assurance-agent/debug/external-llm-redeploy/chat-verification/post-fix-chat/4-hi.latest.json
+      original_failed_attempt_preserved: /home/yelias/Desktop/Projects/quickstart-factory/.tmp/telco-revenue-assurance-agent/debug/external-llm-redeploy/chat-verification/new-chat-attempt-1-result.yaml
+      original_persistence_error_reproduced_before_fix: /home/yelias/Desktop/Projects/quickstart-factory/.tmp/telco-revenue-assurance-agent/debug/external-llm-redeploy/chat-verification/persistence-error-reproduction.json
+      no_secret_values_logged: true
+  reporting_derivation:
+    kind: credential-evidence reporting correction only
+    raw_input: .tmp/telco-revenue-assurance-agent/debug/health-scan-input-20261025T154811Z.json
+    raw_input_sha256: 25191686fb4576ec0f7141cff84a81a486604209199be8d2af3a7aafd4357d14
+    raw_snapshot: .tmp/telco-revenue-assurance-agent/debug/health-post-chat-snapshot-20261025T154811Z.yaml
+    raw_snapshot_sha256: 091fa2c3ec9ae932bb6112c71bf7b4f55fe34b66a84c822e37d46118dd9b41c5
+    credential_verification_at: '2026-10-25T15:05:12.771640+00:00'
+    namespace_names_only_scan_at: '2026-10-25T15:48:11Z'
+    created_at: '2026-10-25T15:51:29.236262+00:00'
+    new_live_calls: 0
+    new_secret_value_reads: 0
+  artifact_directory_relocation:
+    original_directory: /home/yelias/Desktop/Projects/quickstart-factory/.tmp/telco-revenue-assurance-agent/debug
+    archive_directory: /home/yelias/Desktop/Projects/quickstart-factory/.tmp/telco-revenue-assurance-agent/debug.old.20261026-205800-274491
+    scope: References inside preserved evidence from prior runs resolve under this
+      archive, not the new run directory.
+evidence:
+  inventory_path: /home/yelias/Desktop/Projects/quickstart-factory/.tmp/telco-revenue-assurance-agent/debug/health-inventory.json
+  inventory_sha256: 8a03598deb6e016ecdb1e984498d87a345fa3845833482effaf241de2394f31b
+  secret_values_printed_or_recorded: false
+  cluster_mutations: 0
