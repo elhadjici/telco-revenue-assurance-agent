@@ -19,17 +19,9 @@ skills:
   rh-qs-deploy:
     status: pending
   rh-qs-debug-and-deploy:
-    status: in_progress
-    outputs_verified: false
-    last_checked_at: '2026-10-26T21:19:41.692709+00:00'
-    deployment_status: partial
-    reason: Training server/storage approved; original datasets verified and prediction
-      image pushed. Infrastructure preparation in progress; training and full E2E
-      pending.
-    report: /home/yelias/Desktop/Projects/quickstart-factory/.tmp/telco-revenue-assurance-agent/debug/deploy-report.md
-    health_scan_timestamp: '2026-10-26T21:02:31.673510+00:00'
-    training_submitted: false
-    cluster_mutations_this_run: 0
+    status: done
+    completed_at: '2026-11-03T12:57:27'
+    outputs_verified: true
   rh-qs-document:
     status: pending
 ---
@@ -38,9 +30,9 @@ skills:
 
 # Pipeline Dashboard — telco-revenue-assurance-agent
 
-> Last updated: 2026-10-26 21:19:41
+> Last updated: 2026-11-03 12:57:27
 
-`██████████░░░░░░░░░░░░░░` 43% (3/7 steps)
+`██████████████░░░░░░░░░░` 57% (4/7 steps)
 
 ## 🔀 Pipeline Flow
 
@@ -52,7 +44,7 @@ flowchart LR
     style C fill:#e0e0e0,color:#333,stroke:#bbb
     style D fill:#2ea44f,color:#fff,stroke:#1a7f37
     style E fill:#e0e0e0,color:#333,stroke:#bbb
-    style F fill:#e0e0e0,color:#333,stroke:#bbb
+    style F fill:#2ea44f,color:#fff,stroke:#1a7f37
     style G fill:#e0e0e0,color:#333,stroke:#bbb
 ```
 
@@ -65,24 +57,20 @@ flowchart LR
 | 3 | rh-qs-scaffold | ⏳ pending | — | — |
 | 4 | rh-qs-implement | ✅ done | [implementation-manifest.yaml](../pipeline/implementation-manifest.yaml) | 2026-10-26T15:37:30 |
 | 5 | rh-qs-deploy | ⏳ pending | — | — |
-| 6 | rh-qs-debug-and-deploy | ⏳ in_progress | — | — |
+| 6 | rh-qs-debug-and-deploy | ✅ done | [deploy-state.yaml](../pipeline/deploy-state.yaml) | 2026-11-03T12:57:27 |
 | 7 | rh-qs-document | ⏳ pending | — | — |
 
 ---
 
-## ⚠️ Review Before Continuing — rh-qs-implement
+## ⚠️ Review Before Continuing — rh-qs-debug-and-deploy
 
-- implementation-manifest.yaml exists in [.rhoai-qs/telco-revenue-assurance-agent/.qs-factory/pipeline/implementation-manifest.yaml](../pipeline/implementation-manifest.yaml)
-- make lint && make test pass with zero failures
-- Review content: all endpoints implemented, no placeholders, no hardcoded secrets
-- Recommend getting a peer engineer review on the implementation before continuing
+- deploy-state.yaml exists in [.rhoai-qs/telco-revenue-assurance-agent/.qs-factory/pipeline/deploy-state.yaml](../pipeline/deploy-state.yaml) with overall_status healthy
+- Review content: 83/83 expected resources are healthy. The no-cap API image is deployed through a guarded patch to `Deployment/api`; the pod diff confirms exactly one API pod changed and no other pod changed. Phase 5 recorded 1/16 checks passed and 15 skipped; grounded chat is blocked because no authenticated OAuth browser session or independent data/tool gate evidence was available. No new chat POST was sent.
+- Read [deploy-report.md](../../../../.tmp/telco-revenue-assurance-agent/debug/deploy-report.md) (local run log, not committed) and [e2e-results.yaml](../../../../.tmp/telco-revenue-assurance-agent/debug/e2e-results.yaml) for the rollout and verification gates
+- Hold documentation until a grounded chat response is verified against the deployed API
 
 ---
 
-## ▶️ Next Step
+## ⏸ Hold Before Continuing
 
-**rh-qs-deploy** — Deploy configuration — wires ai-architecture-charts Helm subcharts, compose.yml for local dev, Containerfiles, and Makefile deploy targets
-
-```
-/rh-qs-deploy qs-name=telco-revenue-assurance-agent
-```
+The API fix is deployed, but chat has not been verified end to end. Use an authenticated OAuth session, confirm the test plan's data/tool prerequisites, and submit a fresh chat request before generating the final quickstart documentation. Retrying the original failed request ID can still hit its existing `in_progress` guard.

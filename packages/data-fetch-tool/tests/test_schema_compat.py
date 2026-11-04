@@ -5,10 +5,19 @@ import re
 from pathlib import Path
 from typing import cast
 
-from data_fetch_tool.field_allowlist import ENTITY_TABLES, FIELD_ALLOWLIST
+import pytest
+from data_fetch_tool import FetchCustomerDataInput
+from data_fetch_tool.field_allowlist import (
+    ENTITY_TABLES,
+    FIELD_ALLOWLIST,
+    FILTER_ONLY_FIELDS,
+)
+from data_fetch_tool.repository import prepare_request
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.engine import Dialect
 from sqlalchemy.sql.type_api import TypeEngine
+
+from common.errors import ErrorCode, RequestError
 
 _TABLE_PATTERN = re.compile(
     r"CREATE TABLE IF NOT EXISTS app\.(?P<name>[a-z_]+)\s*\((?P<body>.*?)\n\);",
@@ -84,3 +93,38 @@ def test_entity_field_aliases_match_the_frozen_mcp_contract() -> None:
     assert set(contract_aliases) == set(FIELD_ALLOWLIST)
     for entity, aliases in contract_aliases.items():
         assert set(aliases) == set(FIELD_ALLOWLIST[entity])
+
+
+def test_fraud_label_can_filter_but_cannot_be_selected() -> None:
+    contract = json.loads(Path("contracts/data-fetch-mcp.json").read_text(encoding="utf-8"))
+    contract_filter_aliases = contract["x-entity-filter-only-field-map"]
+    source_filter_aliases = {
+        entity: sorted(fields) for entity, fields in FILTER_ONLY_FIELDS.items()
+    }
+    assert contract_filter_aliases == source_filter_aliases
+
+    filters = [{"field": "is_fraud", "operator": "in", "value": [True, False]}]
+    request = FetchCustomerDataInput.model_validate(
+        {
+            "entity": "transactions",
+            "field_aliases": ["transaction_id"],
+            "filters": filters,
+            "limit": 100,
+        }
+    )
+    prepared = prepare_request(request, 100)
+    assert [(item.alias, item.operator, item.value) for item in prepared.filters] == [
+        ("is_fraud", "in", [True, False])
+    ]
+
+    target_selection = FetchCustomerDataInput.model_validate(
+        {
+            "entity": "transactions",
+            "field_aliases": ["is_fraud"],
+            "filters": filters,
+            "limit": 100,
+        }
+    )
+    with pytest.raises(RequestError) as exc_info:
+        prepare_request(target_selection, 100)
+    assert exc_info.value.code == ErrorCode.INVALID_FIELD

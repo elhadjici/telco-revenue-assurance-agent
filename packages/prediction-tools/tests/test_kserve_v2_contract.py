@@ -329,7 +329,7 @@ def test_qoe_checks_flat_data_length_against_batch_beyond_json_schema() -> None:
             dict(_fraud_probability_output(), data=[0.1, 0.9, 0.2, float("nan")]),
         ],
         [_fraud_class_output(), dict(_fraud_probability_output(), data=[0.1, 0.9, 0.2, True])],
-        [dict(_fraud_class_output(), shape=[2, 1])],
+        [dict(_fraud_class_output(), shape=[2, 2])],
         [dict(_fraud_class_output(), data=[0])],
         [dict(_fraud_class_output(), data=[0, 2])],
         [dict(_fraud_class_output(), data=[False, True])],
@@ -478,3 +478,96 @@ async def test_authenticated_inference_retries_one_transient_failure(
     assert len(attempts) == 2
     assert attempts[0].headers["Authorization"] == "Bearer churn-test-token"
     assert result.values == (1,)
+
+
+@pytest.mark.parametrize("datatype", ["FP32", "FP64"])
+@pytest.mark.parametrize("shape", [[5], [5, 1]])
+def test_churn_native_probabilities_follow_trained_binary_classifier(
+    datatype: str, shape: list[int]
+) -> None:
+    manifest = _churn_manifest()
+    response = _response(
+        manifest,
+        [
+            {
+                "name": "predict",
+                "shape": shape,
+                "datatype": datatype,
+                "data": [0.0, 0.499999, 0.5, 0.500001, 1.0],
+                "parameters": {"content_type": "np"},
+            }
+        ],
+    )
+    assert _contract_accepts(ModelKind.CHURN, response, response=True)
+    result = parse_inference_response(ModelKind.CHURN, manifest, 5, response)
+    assert result.values == (0, 0, 0, 1, 1)
+
+
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), -0.01, 1.01, True, "0.5", 10**400])
+def test_churn_rejects_invalid_native_probability(value: object) -> None:
+    manifest = _churn_manifest()
+    response = _response(
+        manifest,
+        [
+            {
+                "name": "predict",
+                "shape": [1],
+                "datatype": "FP64",
+                "data": [value],
+                "parameters": {"content_type": "np"},
+            }
+        ],
+    )
+    with pytest.raises(ServiceError) as error:
+        parse_inference_response(ModelKind.CHURN, manifest, 1, response)
+    assert error.value.code == ErrorCode.FEATURE_SCHEMA_MISMATCH
+
+
+@pytest.mark.parametrize("model_kind", [ModelKind.CHURN, ModelKind.FRAUD, ModelKind.QOE])
+def test_standard_runtime_parameters_preserve_strict_response_validation(
+    model_kind: ModelKind,
+) -> None:
+    output: dict[str, object]
+    if model_kind == ModelKind.CHURN:
+        manifest = _churn_manifest()
+        output = {"name": "predict", "shape": [1], "datatype": "FP64", "data": [0.75]}
+    elif model_kind == ModelKind.FRAUD:
+        manifest = _fraud_manifest()
+        output = {"name": "fraud_class", "shape": [1], "datatype": "INT64", "data": [1]}
+    else:
+        manifest = _qoe_manifest()
+        output = {"name": "output", "shape": [1, 1], "datatype": "FP32", "data": [72.5]}
+    output["parameters"] = {"content_type": "np"}
+    response = _response(manifest, [output])
+    response["parameters"] = {"headers": {"x-runtime": "mlserver"}}
+    assert _contract_accepts(model_kind, response, response=True)
+    assert (
+        parse_inference_response(model_kind, manifest, 1, response).model_version
+        == manifest.model_version
+    )
+    response["unexpected"] = "must still fail"
+    with pytest.raises(ServiceError):
+        parse_inference_response(model_kind, manifest, 1, response)
+
+
+@pytest.mark.parametrize(("field", "value"), [("shape", [1, 2]), ("name", "wrong-output")])
+def test_churn_probability_metadata_mismatch_is_rejected(field: str, value: object) -> None:
+    manifest = _churn_manifest()
+    output: dict[str, object] = {
+        "name": "predict",
+        "shape": [1],
+        "datatype": "FP64",
+        "data": [0.75],
+    }
+    output[field] = value
+    response = _response(manifest, [output])
+    with pytest.raises(ServiceError):
+        parse_inference_response(ModelKind.CHURN, manifest, 1, response)
+
+
+def test_fraud_accepts_numpy_codec_unit_dimension_with_flat_labels() -> None:
+    manifest = _fraud_manifest()
+    output = dict(_fraud_class_output(), shape=[2, 1], parameters={"content_type": "np"})
+    response = _response(manifest, [output])
+    assert _contract_accepts(ModelKind.FRAUD, response, response=True)
+    assert parse_inference_response(ModelKind.FRAUD, manifest, 2, response).values == (0, 1)

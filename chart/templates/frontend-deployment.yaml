@@ -125,9 +125,11 @@ spec:
         - name: oauth-service-account
           projected:
             sources:
-              - serviceAccountToken:
-                  path: token
-                  expirationSeconds: 3600
+              - secret:
+                  name: {{ include "telco.oauthProxyTokenSecret" . }}
+                  items:
+                    - key: token
+                      path: token
               - configMap:
                   name: kube-root-ca.crt
                   items:

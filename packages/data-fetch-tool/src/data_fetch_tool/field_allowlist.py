@@ -247,6 +247,13 @@ FIELD_ALLOWLIST: Mapping[Entity, Mapping[FieldAlias, FieldSpec]] = {
     },
 }
 
+FILTER_ONLY_FIELDS: Mapping[Entity, Mapping[FieldAlias, FieldSpec]] = {
+    "transactions": {
+        "is_fraud": _field(transactions.c.is_fraud, "boolean", ordered=False),
+    },
+}
+
+
 DEFAULT_FIELDS: Mapping[Entity, tuple[FieldAlias, ...]] = {
     "customers": ("customer_id", "plan_type", "dollar_weight", "region_id"),
     "billing_cycles": (

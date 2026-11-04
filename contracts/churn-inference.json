@@ -73,9 +73,15 @@
     },
     "OutputTensor": {
       "type": "object",
+      "allOf": [{
+        "if": { "properties": { "datatype": { "const": "INT64" } } },
+        "then": { "properties": { "data": { "items": { "type": "integer" } } } },
+        "else": { "properties": { "data": { "items": { "type": "number", "minimum": 0, "maximum": 1 } } } }
+      }],
       "additionalProperties": false,
       "required": ["name", "shape", "datatype", "data"],
       "properties": {
+        "parameters": { "type": ["object", "null"], "description": "Optional KServe V2 runtime metadata; tensor validation remains unchanged." },
         "name": {
           "type": "string",
           "minLength": 1,
@@ -83,23 +89,23 @@
         },
         "shape": {
           "type": "array",
-          "prefixItems": [{ "$ref": "#/$defs/PositiveDimension", "description": "Number of output class IDs; equals input batch size." }],
+          "prefixItems": [{ "$ref": "#/$defs/PositiveDimension", "description": "Number of predictions; equals input batch size." }, { "type": "integer", "const": 1 }],
           "items": false,
           "minItems": 1,
-          "maxItems": 1,
-          "description": "One-dimensional output shape [batch]."
+          "maxItems": 2,
+          "description": "One result per row: [batch], or the MLServer NumPy codec shape [batch, 1]."
         },
         "datatype": {
           "type": "string",
-          "const": "INT64",
-          "description": "Class IDs are returned as INT64."
+          "enum": ["INT64", "FP32", "FP64"],
+          "description": "Native LightGBM returns FP64 positive-class probabilities; legacy INT64 class outputs are also accepted."
         },
         "data": {
           "type": "array",
           "minItems": 1,
           "maxItems": 100,
-          "items": { "type": "integer", "description": "Raw LightGBM class ID." },
-          "description": "One raw class ID per input row, preserving input order."
+          "items": { "type": "number" },
+          "description": "One class ID or positive-class probability per input row, preserving input order."
         }
       }
     },
@@ -108,6 +114,7 @@
       "additionalProperties": false,
       "required": ["id", "model_name", "model_version", "outputs"],
       "properties": {
+        "parameters": { "type": ["object", "null"], "description": "Optional KServe V2 runtime metadata; tensor validation remains unchanged." },
         "id": { "type": "string", "description": "Request ID echoed by the inference server." },
         "model_name": { "type": "string", "const": "churn-prediction", "description": "Configured KServe model name." },
         "model_version": { "type": "string", "description": "Served artifact version, which prediction-tools records with the result." },
@@ -116,7 +123,7 @@
           "minItems": 1,
           "maxItems": 1,
           "items": { "$ref": "#/$defs/OutputTensor" },
-          "description": "Exactly one class-output tensor."
+          "description": "Exactly one prediction tensor."
         }
       }
     }
@@ -128,7 +135,7 @@
     "side_effects": "Stateless inference; the model service does not mutate application database rows.",
     "errors": "Invalid tensor, model not ready, invalid model name, and artifact storage failures use KServe V2 error responses and map to INVALID_TENSOR, MODEL_NOT_READY, INVALID_MODEL_NAME, or STORAGE_ERROR.",
     "timeouts_retries": "Prediction-tools sets a 30 second per-batch deadline and retries one transient readiness/5xx failure after 500 milliseconds; invalid tensors and artifact mismatches are not retried.",
-    "ordering": "Exactly one INT64 class output is returned per input row and row order is preserved.",
+    "ordering": "Exactly one probability or legacy class output is returned per input row and row order is preserved. FP32/FP64 probabilities become class 1 only when greater than 0.5; ties map to class 0, matching the trained binary classifier.",
     "versioning": "KServe V2 is the wire protocol. The ordered semantic feature manifest and class metadata are versioned with the artifact and validated before inference."
   },
   "x-preprocessing": {

@@ -20,7 +20,7 @@ spec:
         {{- toYaml .Values.securityContext.pod | nindent 8 }}
       containers:
         - name: data-fetch-tool
-          image: {{ printf "%s:%s" .Values.dataFetchTool.image .Values.image.tag | quote }}
+          image: {{ printf "%s:%s" .Values.dataFetchTool.image (.Values.dataFetchTool.imageTag | default .Values.image.tag) | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["python", "-m", "data_fetch_tool.main"]
           env:

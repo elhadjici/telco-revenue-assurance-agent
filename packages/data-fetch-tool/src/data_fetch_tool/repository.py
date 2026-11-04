@@ -36,6 +36,7 @@ from data_fetch_tool.field_allowlist import (
     ENTITY_ID_COLUMNS,
     ENTITY_TABLES,
     FIELD_ALLOWLIST,
+    FILTER_ONLY_FIELDS,
     FieldSpec,
     feature_value_is_allowed,
 )
@@ -163,6 +164,7 @@ def prepare_request(request: FetchCustomerDataInput, max_fetch_rows: int) -> Pre
         )
 
     entity_fields = FIELD_ALLOWLIST[entity]
+    filter_fields = {**entity_fields, **FILTER_ONLY_FIELDS.get(entity, {})}
     requested_aliases = request.field_aliases or list(DEFAULT_FIELDS[entity])
     if len(requested_aliases) > 19:
         raise RequestError(
@@ -186,7 +188,7 @@ def prepare_request(request: FetchCustomerDataInput, max_fetch_rows: int) -> Pre
 
     prepared_filters: list[PreparedFilter] = []
     for request_filter in request.filters or []:
-        prepared_filters.append(_prepare_filter(entity, entity_fields, request_filter))
+        prepared_filters.append(_prepare_filter(entity, filter_fields, request_filter))
 
     sort_alias: FieldAlias | None = None
     sort_direction: Literal["asc", "desc"] | None = None

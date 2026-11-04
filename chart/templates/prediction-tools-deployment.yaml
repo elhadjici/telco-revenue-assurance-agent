@@ -27,11 +27,13 @@ spec:
             - name: DATA_FETCH_MCP_URL
               value: {{ .Values.predictionTools.dataFetchMcpUrl | quote }}
             - name: CHURN_MODEL_URL
-              value: {{ .Values.predictionTools.modelUrls.churn | quote }}
+              value: {{ include "telco.modelUrl" (dict "root" . "model" .Values.modelServing.churn "override" .Values.predictionTools.modelUrls.churn) | quote }}
             - name: FRAUD_MODEL_URL
-              value: {{ .Values.predictionTools.modelUrls.fraud | quote }}
+              value: {{ include "telco.modelUrl" (dict "root" . "model" .Values.modelServing.fraud "override" .Values.predictionTools.modelUrls.fraud) | quote }}
             - name: QOE_MODEL_URL
-              value: {{ .Values.predictionTools.modelUrls.qoe | quote }}
+              value: {{ include "telco.modelUrl" (dict "root" . "model" .Values.modelServing.qoe "override" .Values.predictionTools.modelUrls.qoe) | quote }}
+            - name: SSL_CERT_FILE
+              value: /etc/telco-model-ca/service-ca.crt
             - name: CHURN_MODEL_AUTH_TOKEN
               valueFrom:
                 secretKeyRef:
@@ -93,14 +95,23 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
+            - name: model-service-ca
+              mountPath: /etc/telco-model-ca
+              readOnly: true
             - name: feature-artifacts
-              mountPath: {{ .Values.predictionTools.modelFeatureManifestDir | quote }}
+              mountPath: {{ .Values.predictionTools.featureArtifactsMountPath | quote }}
               readOnly: true
           resources:
             {{- toYaml .Values.predictionTools.resources | nindent 12 }}
       volumes:
         - name: tmp
           emptyDir: {}
+        - name: model-service-ca
+          configMap:
+            name: {{ .Values.predictionTools.modelServiceCA.configMapName | quote }}
+            items:
+              - key: {{ .Values.predictionTools.modelServiceCA.key | quote }}
+                path: service-ca.crt
         - name: feature-artifacts
           persistentVolumeClaim:
             claimName: {{ .Values.predictionTools.featureArtifactsClaim }}

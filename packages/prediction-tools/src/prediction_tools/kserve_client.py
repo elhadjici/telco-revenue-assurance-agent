@@ -10,7 +10,7 @@ from typing import Protocol
 from uuid import uuid4
 
 import httpx
-from pydantic import BaseModel, ConfigDict, Field, SecretStr, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, JsonValue, SecretStr, ValidationError
 
 from common.errors import ErrorCode, ServiceError, UpstreamError
 from common.http import HttpClient, RetryPolicy
@@ -56,6 +56,7 @@ class _KServeOutput(BaseModel):
     shape: list[int]
     datatype: str
     data: list[object]
+    parameters: dict[str, JsonValue] | None = None
 
 
 class _KServeResponse(BaseModel):
@@ -65,6 +66,7 @@ class _KServeResponse(BaseModel):
     model_name: str = Field(min_length=1)
     model_version: str = Field(min_length=1)
     outputs: list[_KServeOutput]
+    parameters: dict[str, JsonValue] | None = None
 
 
 class KServeV2Client:
@@ -250,20 +252,37 @@ def parse_inference_response(
                 _validate_fraud_probabilities(auxiliary, batch_size)
     elif len(response.outputs) != 1:
         raise _schema_mismatch()
-    expected_shape = [batch_size, 1] if model_kind == ModelKind.QOE else [batch_size]
-    if output.shape != expected_shape:
+    if model_kind == ModelKind.QOE:
+        valid_shape = output.shape == [batch_size, 1]
+    else:
+        # MLServer's NumPy codec pads one-dimensional predictions with a unit axis.
+        valid_shape = output.shape in ([batch_size], [batch_size, 1])
+    if not valid_shape:
         raise _schema_mismatch()
     if len(output.data) != batch_size:
         raise _schema_mismatch()
 
     values: list[int | float] = []
     if model_kind == ModelKind.CHURN:
-        if output.datatype != "INT64":
+        if output.datatype == "INT64":
+            for value in output.data:
+                if type(value) is not int:
+                    raise _schema_mismatch()
+                values.append(value)
+        elif output.datatype in {"FP32", "FP64"}:
+            # The native binary Booster returns P(class=True). This is the same
+            # argmax rule as the trained LGBMClassifier, including ties at 0.5.
+            for value in output.data:
+                if isinstance(value, bool) or not isinstance(value, (int, float)):
+                    raise _schema_mismatch()
+                if not 0 <= value <= 1:
+                    raise _schema_mismatch()
+                probability = float(value)
+                if not math.isfinite(probability):
+                    raise _schema_mismatch()
+                values.append(1 if probability > 0.5 else 0)
+        else:
             raise _schema_mismatch()
-        for value in output.data:
-            if type(value) is not int:
-                raise _schema_mismatch()
-            values.append(value)
     elif model_kind == ModelKind.FRAUD:
         if output.datatype == "BOOL":
             for value in output.data:

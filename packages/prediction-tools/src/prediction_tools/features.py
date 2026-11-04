@@ -263,9 +263,19 @@ def transform_churn_features(
         raw_value = raw_features.get(name)
         categorical_mapping = CHURN_CATEGORICAL_MAPPINGS.get(name)
         if categorical_mapping is not None:
+            if (
+                name in {"PrimaryIssueType", "SupportChannel"}
+                and name in raw_features
+                and raw_value is None
+            ):
+                # The source pipeline fills nulls only for these two categories.
+                raw_value = ""
             if not isinstance(raw_value, str) or raw_value not in categorical_mapping:
                 raise _feature_mismatch()
             transformed.append(categorical_mapping[raw_value])
+        elif name == "EscalationFlag" and isinstance(raw_value, (bool, np.bool_)):
+            # The source dataframe trains this boolean flag as numeric 0/1.
+            transformed.append(float(raw_value))
         else:
             transformed.append(_finite_number(raw_value, name))
     if len(transformed) != manifest.feature_width:

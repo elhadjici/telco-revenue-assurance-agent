@@ -7,8 +7,8 @@ import httpx
 import pytest
 from api.db.session import ApiSettings
 from api.services.ogx_client import (
+    OGX_CHAT_INSTRUCTIONS,
     OGX_DEADLINE_SECONDS,
-    OGX_MAX_OUTPUT_TOKENS,
     OgxReply,
     OgxRequestRejected,
     OgxResponsesClient,
@@ -97,10 +97,23 @@ async def test_responses_request_uses_logical_session_metadata_and_maps_final_te
     assert json.loads(request.content) == {
         "model": "llama-3.1-8b-instruct",
         "input": "Which customers need attention?",
+        "instructions": OGX_CHAT_INSTRUCTIONS,
         "metadata": {"telco_session_id": str(session_id)},
         "store": True,
         "stream": False,
-        "max_output_tokens": OGX_MAX_OUTPUT_TOKENS,
+        "tools": [
+            {
+                "type": "mcp",
+                "server_label": "prediction-tools",
+                "server_url": "http://prediction.example.test:8000/mcp",
+            },
+            {
+                "type": "mcp",
+                "server_label": "data-fetch-tool",
+                "server_url": "http://fetch.example.test:8000/mcp",
+            },
+        ],
+        "tool_choice": "auto",
     }
     assert "conversation" not in json.loads(request.content)
     assert "previous_response_id" not in json.loads(request.content)

@@ -154,7 +154,7 @@ contracts:
 - id: data-fetch-mcp
   kind: json-schema
   path: contracts/data-fetch-mcp.json
-  content_hash: sha256:e435a8f68212cc7eda4a93ff14c0294c285dd9fd8f0e92cf355ff32b24d5e966
+  content_hash: sha256:629c9c6618bb34d5e940f9660b8a3f44c03f955f61c5ac27869c1de049bdbff0
   owner: data-fetch-tool
   consumers:
   - backend
@@ -223,7 +223,7 @@ contracts:
 - id: churn-inference
   kind: json-schema
   path: contracts/churn-inference.json
-  content_hash: sha256:ab2de7a966f5fb2e229fc641af301f991ecf40a58351bf35fb8c65d64ad406b1
+  content_hash: sha256:9ca36b97f1e992cb7a19b543c7151569e6f36aa75b21ac998fe11a2356061757
   owner: churn-model-serving
   consumers:
   - prediction-tools
@@ -241,7 +241,7 @@ contracts:
 - id: fraud-inference
   kind: json-schema
   path: contracts/fraud-inference.json
-  content_hash: sha256:14cd63358faf78bacf4b270a1c336976d9f533533d1b4289f0db1cbb8808f56d
+  content_hash: sha256:005df9bed21ee5eeca6a7119860ac6042b8cee59646f3d4f40cde7e944bc7fcb
   owner: fraud-model-serving
   consumers:
   - prediction-tools
@@ -259,7 +259,7 @@ contracts:
 - id: qoe-inference
   kind: json-schema
   path: contracts/qoe-inference.json
-  content_hash: sha256:b531657fefe8ed4153d26fff6d5732f4b15f6e4b3f284ee8ee2081178b609364
+  content_hash: sha256:c3bbe6fca5c2c54ddc2118efcdf1c27a00cb833134201d80c3b02b2cc313ab51
   owner: qoe-model-serving
   consumers:
   - prediction-tools

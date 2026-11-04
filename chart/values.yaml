@@ -1,5 +1,6 @@
-# Install one namespace-local quickstart stack. Secrets named below must already exist
-# in the release namespace; this chart references them but never creates credentials.
+# Install one namespace-local quickstart stack. Storage/application Secrets must
+# already exist. Model API tokens can be issued by the service-account controller;
+# no credential values are stored in this chart.
 image:
   tag: "0.1.0"
   pullPolicy: IfNotPresent
@@ -66,11 +67,20 @@ predictionTools:
   imageTag: ""
   dataFetchMcpUrl: http://data-fetch-tool:8000/mcp
   modelFeatureManifestDir: /etc/telco-models
+  # Keep the volume root separate when loading atomic bundles through current/.
+  featureArtifactsMountPath: /etc/telco-models
   # Supply a populated PVC containing churn.json, fraud.json, qoe.json,
   # scaler.joblib, and label_encoders.joblib. These files were not included in
   # either source checkout, so the chart deliberately does not invent them.
   featureArtifactsClaim: telco-model-feature-artifacts
+  modelServiceCA:
+    configMapName: openshift-service-ca.crt
+    key: service-ca.crt
   modelAuth:
+    # The controller populates these long-lived SA tokens. Set false to supply
+    # existing Secrets with an explicit renewal/restart process instead.
+    # See deployment/serving/README.md for rotation and revocation.
+    create: true
     churn:
       secretName: telco-churn-model-auth
       tokenKey: token
@@ -81,9 +91,10 @@ predictionTools:
       secretName: telco-qoe-model-auth
       tokenKey: token
   modelUrls:
-    churn: http://churn-prediction-predictor:8080/v2/models/churn-prediction/infer
-    fraud: http://fraud-prediction-predictor:8080/v2/models/fraud-prediction/infer
-    qoe: http://starlink-qoe-predictor:8080/v2/models/starlink-qoe/infer
+    # Empty derives HTTPS:8443 URLs using model names and the release namespace.
+    churn: ""
+    fraud: ""
+    qoe: ""
   resources:
     requests:
       cpu: 250m
@@ -97,6 +108,7 @@ dataFetchTool:
   serviceName: data-fetch-tool
   port: 8000
   image: quay.io/yelias/data-fetch-tool
+  imageTag: ""
   databaseSecretName: telco-data-readonly-db
   databaseSecretKey: DATABASE_READONLY_URL
   maxFetchRows: 100
@@ -194,6 +206,9 @@ modelServing:
   churn:
     serviceName: churn-prediction
     modelName: churn-prediction
+    # Set to an immutable artifact/run identity in deployment values, then verify
+    # the actual inference response before generating the feature manifest.
+    modelVersion: ""
     modelFormat: lightgbm
     modelFormatVersion: "4"
     # An explicit URI overrides the data connection key/path below.
@@ -214,12 +229,14 @@ modelServing:
   fraud:
     serviceName: fraud-prediction
     modelName: fraud-prediction
+    modelVersion: ""
     modelFormat: onnx
     modelFormatVersion: "1"
     uri: ""
     storageSecretName: telco-fraud-model-storage
-    # The fraud pipeline uploads models/1/model.onnx; the serving root is models/.
-    storagePath: models/
+    # Run the unchanged fraud pipeline with s3_model_key=models/fraud/1/model.onnx.
+    # Isolate it from churn's recursively discovered model-settings.json.
+    storagePath: models/fraud
     serviceAccountName: fraud-model-serving
     minReplicas: 1
     maxReplicas: 1
@@ -234,6 +251,7 @@ modelServing:
   qoe:
     serviceName: starlink-qoe
     modelName: starlink-qoe
+    modelVersion: ""
     modelFormat: onnx
     modelFormatVersion: "1"
     uri: ""

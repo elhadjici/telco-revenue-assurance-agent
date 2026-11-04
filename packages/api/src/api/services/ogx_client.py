@@ -11,8 +11,14 @@ from common.errors import ErrorCode, UpstreamError
 from common.http import HttpClient
 
 OGX_DEADLINE_SECONDS = 110.0
-OGX_MAX_OUTPUT_TOKENS = 512
 OGX_SESSION_METADATA_KEY = "telco_session_id"
+OGX_CHAT_INSTRUCTIONS = (
+    "You are the Telco Revenue Assurance analyst assistant. For questions about customer, "
+    "billing, transaction, churn, fraud, or QoE data, use the available tools and base factual "
+    "answers only on their results. Use prediction tools for new model scores and the data-fetch "
+    "tool for existing records. If the tools cannot answer, say so; do not invent customer "
+    "records, scores, or results. For general questions unrelated to this data, answer normally."
+)
 
 
 class OgxRequestRejected(UpstreamError):
@@ -36,6 +42,18 @@ class OgxResponsesClient:
     ) -> None:
         self._url = f"{str(settings.ogx_base_url).rstrip('/')}/v1/responses"
         self._model_id = settings.ogx_model_id
+        self._tools = [
+            {
+                "type": "mcp",
+                "server_label": "prediction-tools",
+                "server_url": str(settings.prediction_mcp_url),
+            },
+            {
+                "type": "mcp",
+                "server_label": "data-fetch-tool",
+                "server_url": str(settings.data_fetch_mcp_url),
+            },
+        ]
         self._http = http_client or HttpClient(timeout_seconds=OGX_DEADLINE_SECONDS)
         self._owns_http = http_client is None
 
@@ -45,10 +63,12 @@ class OgxResponsesClient:
         payload: dict[str, object] = {
             "model": self._model_id,
             "input": message,
+            "instructions": OGX_CHAT_INSTRUCTIONS,
             "metadata": {OGX_SESSION_METADATA_KEY: str(session_id)},
             "store": True,
             "stream": False,
-            "max_output_tokens": OGX_MAX_OUTPUT_TOKENS,
+            "tools": self._tools,
+            "tool_choice": "auto",
         }
         if previous_response_id is not None:
             payload["previous_response_id"] = previous_response_id

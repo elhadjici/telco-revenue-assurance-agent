@@ -76,6 +76,7 @@
       "additionalProperties": false,
       "required": ["name", "shape", "datatype", "data"],
       "properties": {
+        "parameters": { "type": ["object", "null"], "description": "Optional KServe V2 runtime metadata; tensor validation remains unchanged." },
         "name": {
           "type": "string",
           "minLength": 1,
@@ -83,11 +84,11 @@
         },
         "shape": {
           "type": "array",
-          "prefixItems": [{ "$ref": "#/$defs/PositiveDimension", "description": "Number of class IDs; equals input batch size." }],
+          "prefixItems": [{ "$ref": "#/$defs/PositiveDimension", "description": "Number of class IDs; equals input batch size." }, { "type": "integer", "const": 1 }],
           "items": false,
           "minItems": 1,
-          "maxItems": 1,
-          "description": "One-dimensional output shape [batch]."
+          "maxItems": 2,
+          "description": "One result per row: [batch], or the MLServer NumPy codec shape [batch, 1]."
         },
         "datatype": {
           "type": "string",
@@ -114,6 +115,7 @@
       "additionalProperties": false,
       "required": ["name", "shape", "datatype", "data"],
       "properties": {
+        "parameters": { "type": ["object", "null"], "description": "Optional KServe V2 runtime metadata; tensor validation remains unchanged." },
         "name": {
           "type": "string",
           "minLength": 1,
@@ -149,6 +151,7 @@
       "additionalProperties": false,
       "required": ["id", "model_name", "model_version", "outputs"],
       "properties": {
+        "parameters": { "type": ["object", "null"], "description": "Optional KServe V2 runtime metadata; tensor validation remains unchanged." },
         "id": { "type": "string", "description": "Request ID echoed by the inference server." },
         "model_name": { "type": "string", "const": "fraud-prediction", "description": "Configured KServe model name." },
         "model_version": { "type": "string", "description": "Served artifact version, recorded with prediction results." },

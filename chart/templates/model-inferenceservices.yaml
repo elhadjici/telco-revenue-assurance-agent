@@ -22,8 +22,9 @@ metadata:
     opendatahub.io/model-type: predictive
     openshift.io/display-name: {{ $entry.model.serviceName | quote }}
     serving.kserve.io/deploymentMode: "Standard"
+    {{- if $entry.model.uri }}
     serving.kserve.io/storageSecretName: {{ $entry.model.storageSecretName | quote }}
-    {{- if not $entry.model.uri }}
+    {{- else }}
     opendatahub.io/connections: {{ $entry.model.storageSecretName | quote }}
     opendatahub.io/connection-path: {{ $entry.model.storagePath | quote }}
     {{- end }}
@@ -38,12 +39,17 @@ spec:
     serviceAccountName: {{ $entry.model.serviceAccountName | quote }}
     timeout: {{ $entry.model.timeout }}
     model:
-      {{- if eq $entry.component "qoe-model-serving" }}
+      {{- if or $entry.model.modelVersion (eq $entry.component "qoe-model-serving") (eq $entry.component "fraud-model-serving") }}
       env:
+        {{- if $entry.model.modelVersion }}
+        - name: MLSERVER_MODEL_VERSION
+          value: {{ $entry.model.modelVersion | quote }}
+        {{- end }}
+        {{- if or (eq $entry.component "qoe-model-serving") (eq $entry.component "fraud-model-serving") }}
         - name: MLSERVER_MODEL_URI
           value: /mnt/models/1/model.onnx
+        {{- end }}
       {{- end }}
-      name: {{ $entry.model.modelName | quote }}
       modelFormat:
         name: {{ $entry.model.modelFormat | quote }}
         version: {{ $entry.model.modelFormatVersion | quote }}

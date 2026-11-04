@@ -28,6 +28,7 @@ build/
 
 # Helm dependency downloads and packaged charts
 chart/charts/
+deployment/training/charts/
 *.tgz
 
 # Editors and operating systems

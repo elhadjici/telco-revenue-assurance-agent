@@ -192,7 +192,7 @@ spec:
               {{- include "telco.componentSelector" (dict "root" $ "component" $entry.component) | nindent 14 }}
       ports:
         - protocol: TCP
-          port: 8080
+          port: 8443
 {{ end }}
 ---
 apiVersion: networking.k8s.io/v1

@@ -41,3 +41,11 @@ app.kubernetes.io/component: {{ .component }}
 {{- $root := .root | default . -}}
 {{- printf "%s-%s" (include "telco.fullname" $root) .suffix | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+
+{{- define "telco.oauthProxyTokenSecret" -}}
+{{- printf "%s-oauth-proxy-token" (include "telco.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "telco.modelUrl" -}}
+{{- default (printf "https://%s-predictor.%s.svc:8443/v2/models/%s/infer" .model.serviceName .root.Release.Namespace .model.modelName) .override -}}
+{{- end -}}

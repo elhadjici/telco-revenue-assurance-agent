@@ -83,6 +83,7 @@
       "additionalProperties": false,
       "required": ["name", "shape", "datatype", "data"],
       "properties": {
+        "parameters": { "type": ["object", "null"], "description": "Optional KServe V2 runtime metadata; tensor validation remains unchanged." },
         "name": {
           "type": "string",
           "minLength": 1,
@@ -123,6 +124,7 @@
       "additionalProperties": false,
       "required": ["id", "model_name", "model_version", "outputs"],
       "properties": {
+        "parameters": { "type": ["object", "null"], "description": "Optional KServe V2 runtime metadata; tensor validation remains unchanged." },
         "id": { "type": "string", "description": "Request ID echoed by the inference server." },
         "model_name": { "type": "string", "const": "starlink-qoe", "description": "Configured KServe model name." },
         "model_version": { "type": "string", "description": "Served artifact version, recorded with prediction results." },
