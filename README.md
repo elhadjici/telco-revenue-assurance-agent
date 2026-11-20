@@ -18,9 +18,9 @@ Detect churn risk, billing fraud, and network QoE issues using a conversational 
 
 This AI quickstart shows how a telecom revenue assurance team can use a conversational AI agent to investigate customer churn risk, billing fraud, and network Quality of Experience (QoE) across customer segments in real time. Rather than running manual SQL queries or switching between dashboards, an analyst asks the agent in plain language and receives model-backed insights in seconds — with the agent deciding autonomously which tools and models to call.
 
-The agent runs on Red Hat® OpenShift AI using LlamaStack with a Llama 3.1 8B Instruct model served by vLLM. It uses a ReAct loop to decide when to query the customer database, when to invoke the churn or fraud prediction models, and when to fetch QoE metrics — combining SQL data retrieval with live ML inference to produce actionable analyst guidance. All three prediction models (churn, fraud/RAFM, and QoE) are served as KServe InferenceServices on Red Hat OpenShift AI, using LightGBM and ONNX runtimes.
+The agent runs on Red Hat® OpenShift AI using OGX with a Llama 3.1 8B Instruct model served by vLLM. It uses a ReAct loop to decide when to query the customer database, when to invoke the churn or fraud prediction models, and when to fetch QoE metrics — combining SQL data retrieval with live ML inference to produce actionable analyst guidance. All three prediction models (churn, fraud/RAFM, and QoE) are served as KServe InferenceServices on Red Hat OpenShift AI, using LightGBM and ONNX runtimes.
 
-A React dashboard gives analysts a high-level regional risk summary and surfaces the same AI agent through a floating chat panel. A FastAPI backend orchestrates communication between the UI, the LlamaStack agent, and a PostgreSQL database populated by a one-off data generator job using synthetic but statistically realistic telco customer, transaction, and network data.
+A React dashboard gives analysts a high-level regional risk summary and surfaces the same AI agent through a floating chat panel. A FastAPI backend orchestrates communication between the UI, the OGX agent, and a PostgreSQL database populated by a one-off data generator job using synthetic but statistically realistic telco customer, transaction, and network data.
 
 At deployment, a scoring job pre-computes churn, fraud, and QoE predictions for all customers and writes them to the database. The dashboard reads these stored scores to display summary metrics — churn rate, fraud count, and average QoE by region — without hitting the models at runtime. The agent operates on-demand, filtering, slicing, and cross-referencing the same model APIs to answer analyst follow-up questions in real time.
 
@@ -32,7 +32,7 @@ flowchart TB
     Route --> Frontend[React Dashboard]
     Frontend -->|REST 🔒| Backend[FastAPI API]
     Backend -->|SQL 🔒| DB{{PostgreSQL}}
-    Backend --> OGX{{ogx-ai / LlamaStack}}
+    Backend --> OGX{{ogx-ai / OGX}}
     OGX -->|OpenAI API| LLM{{llm-service / vLLM}}
     OGX -->|Python SDK| PredTools[Prediction Tools]
     OGX -->|Python SDK| DataFetch[Data Fetch Tool]
@@ -50,7 +50,7 @@ flowchart TB
 |---|---|
 | **React Dashboard** | Regional risk metrics + floating AI chat interface |
 | **FastAPI Backend** | REST API — routes chat and metrics requests |
-| **ogx-ai / LlamaStack** | Agent orchestration and ReAct tool loop |
+| **ogx-ai / OGX** | Agent orchestration and ReAct tool loop |
 | **vLLM** | Llama 3.1 8B Instruct on-cluster inference |
 | **Data Fetch Tool** | Queries PostgreSQL for customer and transaction data |
 | **Prediction Tools** | Wraps KServe Churn, Fraud, and QoE model endpoints |
@@ -132,6 +132,7 @@ Before deploying, ensure the following are in place:
 - **OCP CLI login** — you are authenticated against the target cluster (`oc whoami` returns your username).
 - **OCP internal registry enabled** — the cluster internal registry is running and accessible; required by the `make build-*` targets that push images via `BuildConfig` and `ImageStream`.
 - **Object storage** — an S3-compatible bucket (MinIO or equivalent) must be available; used by the Data Science Pipeline Application (DSPA) and the data connection for model artifacts. If not already deployed, use `make deploy-minio` (see Step 1 below).
+- **HF Token** — an authenticated hugging face token must be avaliable. it is used for deploying the repositories Llama model, so you must have access to whichever model you plan on deploying. 
 
 ## Deploy
 
@@ -290,11 +291,6 @@ oc get datasciencepipelinesapplication dspa -n $NAMESPACE \
 Builds the pipeline base image, uploads training datasets to MinIO, then runs the three KFP training pipelines (churn, fraud/RAFM, QoE). Each pipeline trains a model and writes the artifact to S3 at a path that KServe will serve from.
 
 ```bash
-# Build the pipeline base image (once — skip if already done)
-make build-pipeline-base
-
-# Upload training datasets to MinIO (once — skip if already done)
-make upload-datasets
 
 # Run the three training pipelines
 make run-pipeline-churn
@@ -398,9 +394,9 @@ Expected: pod `Running`, service `predictor` on port `8080`.
 
 ---
 
-### Step 12 — ogx-ai / LlamaStack Agent
+### Step 12 — ogx-ai / OGX Agent
 
-Deploys the LlamaStack agent server (ogx-ai). This is the ReAct loop that receives analyst questions, decides which tools to call, and streams responses back to the backend.
+Deploys the OGX agent server (ogx-ai). This is the ReAct loop that receives analyst questions, decides which tools to call, and streams responses back to the backend.
 
 If you deployed the LLM service in Step 2, pass the internal vLLM URL:
 
@@ -490,7 +486,7 @@ oc delete pvc --all -n $NAMESPACE
 
 ## Troubleshooting
 
-### OGX / LlamaStack agent returns "Internal server error"
+### OGX / OGX agent returns "Internal server error"
 
 The model ID configured in the backend does not match what OGX registered. Verify the available models:
 
