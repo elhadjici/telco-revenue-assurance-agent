@@ -6,6 +6,7 @@ Detect churn risk, billing fraud, and network QoE issues using a conversational 
 
 - [Description](#description)
 - [Architecture](#architecture)
+- [Usage](#usage)
 - [Example Queries](#example-queries)
 - [Requirements](#requirements)
 - [Deploy](#deploy)
@@ -72,6 +73,56 @@ flowchart TB
 | `predict_churn` | Prediction | Churn risk score via KServe |
 | `predict_fraud` | Prediction | Fraud flag via KServe |
 | `predict_qoe` | Prediction | QoE score via KServe |
+
+## Usage
+
+Open the [deployed dashboard](https://frontend-telco-revenue-assurance-agent.apps.ptnr2.cert4.bos2.lab/) to explore the app. For your own deployment, open the `frontend` OpenShift route after completing the [deployment steps](#deploy), including data generation and scoring.
+
+The screenshots below show the deployed app with synthetic data. Metrics and the highest-risk region depend on the dataset and stored predictions; the figures in [Example Queries](#example-queries) are illustrative.
+
+### 1. Review the revenue assurance overview
+
+Start with the summary cards to understand the current exposure:
+
+- **Revenue at risk** shows customer billing exposed to churn.
+- **Churn rate** shows the percentage and count of customers predicted to churn.
+- **Fraud cases** shows the flagged count and percentage of transactions.
+- **Avg QoE score** summarizes quality of experience on a 0–100 scale, where higher scores indicate better service quality.
+
+The **Quality of experience** panel breaks customer sessions into Good, Fair, and Poor groups. The **Highest churn region** card highlights the region to investigate, including its churn rate, customers at risk, average QoE, and season.
+
+![Dashboard overview showing the regional risk summary, revenue and risk metrics, QoE distribution, and North as the highest-churn region](docs/images/dashboard-overview.png)
+
+*Dashboard overview with pre-computed predictions for 10,000 synthetic customers.*
+
+### 2. Compare regional risks
+
+Use the buttons above **Regional risk summary** to change the table's sort order:
+
+- **Churn** places the highest churn rate first (the default view).
+- **Fraud** places the highest fraud rate first.
+- **QoE** places the lowest quality score first, surfacing regions with the weakest service quality.
+
+Compare customer counts, churn exposure, fraud rates, and QoE across the same rows to choose a follow-up question. In the captured snapshot, North has the highest churn rate and lowest QoE, while East has the highest fraud rate. This gives the analyst separate starting points for network-quality and billing investigations.
+
+### 3. Investigate with the AI assistant
+
+1. Select **Ask AI** in the bottom-right corner to open the **Revenue assistant** panel.
+2. Choose a suggested question, such as **Which region needs attention first?**, to fill the question field, or type your own question.
+3. Select **Send**. The assistant displays **Thinking…** while it investigates and shows tool activity, such as **Called query_db**, alongside the conversation.
+4. Read the response, then ask follow-up questions in the same panel to narrow the investigation. Select **Close assistant** to return to the unobstructed dashboard.
+
+![Dashboard with the Revenue assistant showing database tool calls and a response prioritizing North based on churn, revenue at risk, and QoE](docs/images/dashboard-assistant.png)
+
+*A completed response to “Which region needs attention first?” using the deployed dataset.*
+
+Try follow-ups such as:
+
+- “Why is churn high in North?” — substitute the region highlighted in your dashboard.
+- “Are fraud-flagged customers also churning?”
+- “Which customers in North are at risk of churning?”
+
+Use the findings to decide which coverage, retention, or billing investigation to pursue. The agent recommends actions; it does not apply retention offers or block accounts. Dashboard metrics come from stored scoring results, while the assistant can query the data and invoke prediction tools on demand.
 
 ## Example Queries
 
