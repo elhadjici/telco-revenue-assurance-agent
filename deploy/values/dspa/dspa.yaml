@@ -16,17 +16,18 @@ spec:
       deploy: true
       pipelineDBName: mlpipeline
       pvcSize: 10Gi
+      storageClassName: ${STORAGE_CLASS}
       username: mlpipeline
   dspVersion: v2
   objectStorage:
     disableHealthCheck: false
     enableExternalRoute: false
     externalStorage:
-      bucket: ${MINIO_BUCKET}
-      host: ${MINIO_HOST}
-      port: "${MINIO_PORT}"
+      bucket: ${S3_BUCKET}
+      host: ${S3_HOST_FQDN}
+      port: "${S3_PORT}"
       region: us-east-1
-      scheme: ${MINIO_SCHEME}
+      scheme: ${S3_SCHEME}
       s3CredentialsSecret:
         accessKey: AWS_ACCESS_KEY_ID
         secretKey: AWS_SECRET_ACCESS_KEY
