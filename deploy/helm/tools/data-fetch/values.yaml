@@ -6,6 +6,9 @@ image:
   name: data-fetch-tool
   tag: "latest"
   pullPolicy: Always
+  # Optional: set to override registry/namespace/name with a full repo path.
+  # e.g. quay.io/rh-ai-quickstart/telco-revenue-assurance-agent-data-fetch
+  repository: ""
 
 # ── Deployment settings ────────────────────────────────────────────────────────
 replicaCount: 1

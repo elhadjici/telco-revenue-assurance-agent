@@ -22,7 +22,7 @@ NAMESPACE         ?= telco-revenue-assurance-agent
 PGVECTOR_USER     ?= postgres
 PGVECTOR_PASSWORD ?= change-me
 PGVECTOR_DBNAME   ?= postgres
-PGVECTOR_IMAGE    ?=
+PGVECTOR_IMAGE    ?= $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-pgvector:$(IMAGE_TAG)
 HF_TOKEN          ?=
 
 # S3 / aws-compatible-storage connection details.
@@ -39,9 +39,7 @@ S3_ACCESS_KEY     ?= s4admin
 S3_SECRET_KEY     ?= s4secret
 
 # ── Container image registry ───────────────────────────────────────────────────
-# Set IMAGE_REGISTRY to build/push/pull from an external registry.
-# Example: make deploy IMAGE_REGISTRY=quay.io/ecisse
-IMAGE_REGISTRY ?=
+IMAGE_REGISTRY ?= quay.io/rh-ai-quickstart
 override IMAGE_PREFIX := telco-revenue-assurance-agent
 
 # ── LLM service ────────────────────────────────────────────────────────────────
@@ -90,8 +88,9 @@ DEPLOY_FLAGS = \
   HF_TOKEN=$(HF_TOKEN)
 
 # ── Image version ──────────────────────────────────────────────────────────────
-VERSION   ?= 0.1.0
-IMAGE_TAG ?= $(VERSION)
+VERSION            ?= 0.1.0
+CURRENT_GIT_BRANCH  = $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null)
+IMAGE_TAG          ?= $(if $(filter main,$(CURRENT_GIT_BRANCH)),$(VERSION),$(VERSION)-dev)
 
 version:
 	@echo "$(VERSION)"
@@ -100,7 +99,7 @@ version:
 # Builds all application images with docker. Distinct from the OpenShift
 # build target which requires a cluster (oc start-build).
 build-all-images:
-	docker build -t $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-backend:$(VERSION)         backend/
+	docker build -t $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-backend:$(VERSION)         -f backend/Dockerfile .
 	docker build -t $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-data-fetch:$(VERSION)      tools/data-fetch/
 	docker build -t $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-data-generator:$(VERSION)  data-generator/
 	docker build -t $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-frontend:$(VERSION)        frontend/
@@ -149,7 +148,7 @@ deploy-app:
 # Waits up to 10 min for the InferenceService to be Ready before returning,
 # so the OGX-AI wait-for-models init container starts with vLLM already serving.
 maybe-deploy-llm:
-	$(if $(LLM_URL),,$(MAKE) -C deploy deploy-llm-service $(DEPLOY_FLAGS) HF_TOKEN=$(HF_TOKEN))
+	$(if $(LLM_URL),,$(MAKE) -C deploy deploy-llm-service $(DEPLOY_FLAGS))
 	$(if $(LLM_URL),,oc wait inferenceservice/$(LLM_MODEL_KEY) -n $(NAMESPACE) --for=condition=Ready=True --timeout=600s)
 
 # Full deploy: infra → pipelines → verify pipelines → (optional local LLM) → app.
@@ -202,21 +201,21 @@ run-pipeline-churn: $(VENV)
 	$(PIP) install -q kfp kfp-kubernetes python-dotenv
 	KUBEFLOW_ENDPOINT=$(KFP_ENDPOINT) BEARER_TOKEN=$(BEARER_TOKEN) \
 	S3_BUCKET=$(S3_BUCKET) \
-	$(if $(IMAGE_REGISTRY),BASE_IMAGE=$(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-pipeline-base:latest) \
+	$(if $(IMAGE_REGISTRY),BASE_IMAGE=$(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-pipeline-base:$(IMAGE_TAG)) \
 	  $(PYTHON) demo/pipelines/03-telco-churn-kfp-pipeline.py
 
 run-pipeline-fraud: $(VENV)
 	$(PIP) install -q kfp kfp-kubernetes python-dotenv
 	KUBEFLOW_ENDPOINT=$(KFP_ENDPOINT) BEARER_TOKEN=$(BEARER_TOKEN) \
 	S3_BUCKET=$(S3_BUCKET) \
-	$(if $(IMAGE_REGISTRY),BASE_IMAGE=$(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-pipeline-base:latest) \
+	$(if $(IMAGE_REGISTRY),BASE_IMAGE=$(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-pipeline-base:$(IMAGE_TAG)) \
 	  $(PYTHON) demo/pipelines/01-telco-revass-randomforest-pipeline.py
 
 run-pipeline-qoe: $(VENV)
 	$(PIP) install -q kfp kfp-kubernetes python-dotenv
 	KUBEFLOW_ENDPOINT=$(KFP_ENDPOINT) BEARER_TOKEN=$(BEARER_TOKEN) \
 	S3_SCHEME=$(S3_SCHEME) S3_HOST=$(S3_HOST) S3_PORT=$(S3_PORT) S3_BUCKET=$(S3_BUCKET) \
-	$(if $(IMAGE_REGISTRY),BASE_IMAGE=$(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-pipeline-base:latest) \
+	$(if $(IMAGE_REGISTRY),BASE_IMAGE=$(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-pipeline-base:$(IMAGE_TAG)) \
 	  $(PYTHON) demo/pipelines/starlink_qoe_pipeline.py
 
 run-pipelines: run-pipeline-churn run-pipeline-fraud run-pipeline-qoe

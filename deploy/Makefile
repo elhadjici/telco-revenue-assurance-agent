@@ -13,8 +13,8 @@ DB_SECRET         ?= database-secret
 # PGVECTOR_IMAGE: pre-seeded PostgreSQL image (data already generated).
 # When set, deploy-pgvector uses this image and deploy-all skips deploy-data-gen.
 # Build with: make build-pgvector-seeded (see docs)
-# Example: make deploy PGVECTOR_IMAGE=quay.io/ecisse/telco-revenue-assurance-agent-pgvector:latest
-PGVECTOR_IMAGE    ?=
+# Example: make deploy PGVECTOR_IMAGE=quay.io/rh-ai-quickstart/telco-revenue-assurance-agent-pgvector:latest
+PGVECTOR_IMAGE    ?= $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-pgvector:$(IMAGE_TAG)
 # Split repo and tag so the chart doesn't double-append the tag.
 # Works for quay.io/org/name:tag and quay.io/org/name (defaults tag to latest).
 _pgvector_repo     = $(firstword $(subst :, ,$(PGVECTOR_IMAGE)))
@@ -40,19 +40,16 @@ S3_ACCESS_KEY     ?= s4admin
 S3_SECRET_KEY     ?= s4secret
 
 # ── Container image registry ───────────────────────────────────────────────────
-# Set IMAGE_REGISTRY to publish/pull images from an external registry instead of
-# the internal OpenShift registry. IMAGE_PREFIX is the shared name prefix.
-# Example: make deploy-all IMAGE_REGISTRY=quay.io/ecisse
-# Leave empty to use the internal registry (requires make build-all first).
-IMAGE_REGISTRY ?=
-IMAGE_TAG      ?= latest
+IMAGE_REGISTRY     ?= quay.io/rh-ai-quickstart
+CURRENT_GIT_BRANCH  = $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null)
+IMAGE_TAG          ?= $(if $(filter main,$(CURRENT_GIT_BRANCH)),$(VERSION),$(VERSION)-dev)
 override IMAGE_PREFIX := telco-revenue-assurance-agent
 
 # Compute full image repository for a given suffix (empty when IMAGE_REGISTRY unset)
 img = $(if $(IMAGE_REGISTRY),$(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-$(1))
 
 # Default scoring image: external registry when set, internal otherwise.
-SCORING_IMAGE ?= $(if $(IMAGE_REGISTRY),$(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-scoring:latest,image-registry.openshift-image-registry.svc:5000/$(NAMESPACE)/scoring:latest)
+SCORING_IMAGE ?= $(if $(IMAGE_REGISTRY),$(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-scoring:$(IMAGE_TAG),image-registry.openshift-image-registry.svc:5000/$(NAMESPACE)/scoring:latest)
 
 # ── LLM service ────────────────────────────────────────────────────────────────
 # LLM_URL: vLLM-compatible base URL for OGX-AI.  Can be in-cluster or external.

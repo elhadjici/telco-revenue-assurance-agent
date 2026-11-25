@@ -6,6 +6,9 @@ image:
   name: data-generator
   tag: "latest"
   pullPolicy: Always
+  # Optional: set to override registry/namespace/name with a full repo path.
+  # e.g. quay.io/rh-ai-quickstart/telco-revenue-assurance-agent-data-generator
+  repository: ""
 
 # ── Data generation parameters ─────────────────────────────────────────────────
 generator:

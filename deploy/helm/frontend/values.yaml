@@ -5,6 +5,9 @@ image:
   name: telco-frontend
   tag: "latest"
   pullPolicy: Always
+  # Optional: set to override registry/namespace/name with a full repo path.
+  # e.g. quay.io/rh-ai-quickstart/telco-revenue-assurance-agent-frontend
+  repository: ""
 
 imagePullSecrets: []
 
@@ -61,7 +64,7 @@ affinity: {}
 
 # ── Backend API proxy ──────────────────────────────────────────────────────────
 # nginx proxies /api/ to this URL. Override for each namespace deployment.
-backendUrl: "http://backend.telco-revenue-assurance-agent.svc.cluster.local:8000"
+backendUrl: ""
 
 # ── Optional name overrides ─────────────────────────────────────────────────────
 nameOverride: ""

@@ -1,5 +1,5 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
-import { createSession, streamTurn, SessionExpiredError, type SseEvent } from "@/api/chat";
+import { createSession, streamTurn, SessionExpiredError } from "@/api/chat";
 
 interface ChatMessage {
   id: number;
@@ -82,10 +82,20 @@ export function FloatingChatbot() {
         sessionIdRef.current = await createSession();
       }
 
-      const assistantId = addMessage("assistant", "");
+      let assistantId: number | null = null;
+      const getAssistantId = () => {
+        if (assistantId === null) assistantId = addMessage("assistant", "");
+        return assistantId;
+      };
 
       for await (const event of streamTurn(sessionIdRef.current, trimmed)) {
-        handleSseEvent(event, assistantId);
+        if (event.type === "text") {
+          appendToMessage(getAssistantId(), event.content);
+        } else if (event.type === "tool_call") {
+          addMessage("tool", `Called ${event.name}`);
+        } else if (event.type === "error") {
+          appendToMessage(getAssistantId(), `\n\n⚠️ ${event.content}`);
+        }
       }
     } catch (err) {
       if (err instanceof SessionExpiredError) {
@@ -96,16 +106,6 @@ export function FloatingChatbot() {
       }
     } finally {
       setIsStreaming(false);
-    }
-  };
-
-  const handleSseEvent = (event: SseEvent, assistantId: number) => {
-    if (event.type === "text") {
-      appendToMessage(assistantId, event.content);
-    } else if (event.type === "tool_call") {
-      addMessage("tool", `Called ${event.name}`);
-    } else if (event.type === "error") {
-      appendToMessage(assistantId, `\n\n⚠️ ${event.content}`);
     }
   };
 

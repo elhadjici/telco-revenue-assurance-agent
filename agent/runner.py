@@ -142,9 +142,14 @@ class AgentRunner:
             try:
                 tool_calls, assistant_text = await self._call_llm(messages)
             except BadRequestError as exc:
-                if "single tool-calls" in str(exc) or "parallel" in str(exc).lower():
+                msg = str(exc)
+                if "single tool-calls" in msg or "parallel" in msg.lower():
                     log.warning("Model attempted parallel tool calls — stopping turn")
                     yield {"type": "error", "content": "The model tried to call multiple tools at once, which is not supported. Please rephrase as a single-step question (e.g. 'show churn risk' then separately 'check fraud')."}
+                    return
+                if "max_tokens" in msg or "max_completion_tokens" in msg or "context length" in msg.lower():
+                    log.warning("Context window full for session %s — %s", session_id, exc)
+                    yield {"type": "error", "content": "The conversation is too long for the model's context window. Please start a new session to continue."}
                     return
                 raise
 
@@ -203,6 +208,7 @@ class AgentRunner:
                 tools=_OPENAI_TOOLS,
                 tool_choice="auto",
                 stream=True,
+                max_tokens=2048,  # keep well below the 14336-token context limit
             )
 
             text = ""

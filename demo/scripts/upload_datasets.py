@@ -18,9 +18,11 @@ import lzma
 import logging
 import os
 import tempfile
+import time
 
 import boto3
 import botocore.client
+import botocore.exceptions
 from datasets import load_dataset
 
 logging.basicConfig(
@@ -66,6 +68,26 @@ def make_s3_client():
     )
 
 
+def wait_for_bucket(client, bucket, timeout=120):
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            client.head_bucket(Bucket=bucket)
+            log.info("Bucket s3://%s is ready.", bucket)
+            return
+        except botocore.exceptions.ClientError as exc:
+            code = exc.response["Error"]["Code"]
+            if code in ("404", "NoSuchBucket"):
+                log.info("Waiting for bucket s3://%s to exist...", bucket)
+                time.sleep(5)
+            else:
+                raise
+    raise RuntimeError(
+        f"Bucket s3://{bucket} not found after {timeout}s. "
+        "Check that upload-datasets runs after deploy-storage."
+    )
+
+
 def upload(client, bucket, key, local_path):
     client.upload_file(local_path, bucket, key)
     size = client.head_object(Bucket=bucket, Key=key)["ContentLength"]
@@ -75,6 +97,7 @@ def upload(client, bucket, key, local_path):
 def main():
     bucket = os.environ.get("AWS_S3_BUCKET", "mybucket")
     client = make_s3_client()
+    wait_for_bucket(client, bucket)
 
     with tempfile.TemporaryDirectory() as tmp:
         for ds in DATASETS:
