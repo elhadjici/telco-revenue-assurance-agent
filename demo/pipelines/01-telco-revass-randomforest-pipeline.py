@@ -1,6 +1,7 @@
 """Kubeflow pipeline for Telco Revenue Assurance - Fraud Detection."""
 
 import os
+import sys
 
 import kfp.compiler
 from dotenv import load_dotenv
@@ -380,11 +381,27 @@ if __name__ == "__main__":
     sa_ca_cert = "/run/secrets/kubernetes.io/serviceaccount/service-ca.crt"
     ssl_ca_cert = sa_ca_cert if os.path.isfile(sa_ca_cert) else None
 
+    # Substitute S3_BUCKET so the input dataset path matches the actual bucket.
+    # The upload step reads AWS_S3_BUCKET and AWS_S3_ENDPOINT from the
+    # my-data-connection secret at runtime, so only the artifact_uri needs fixing here.
+    minio_bucket = os.getenv("S3_BUCKET", "mybucket")
+
     client = kfp.Client(
         host=kubeflow_endpoint,
         existing_token=bearer_token,
         verify_ssl=False,
     )
-    result = client.create_run_from_pipeline_func(pipeline, arguments={}, experiment_name="revass")
+    result = client.create_run_from_pipeline_func(
+        pipeline,
+        arguments={
+            "artifact_uri": f"s3://{minio_bucket}/data/telecom_revass_data.csv.xz",
+        },
+        experiment_name="revass",
+    )
     print(f"Starting pipeline run with run_id: {result.run_id}")
-    client.wait_for_run_completion(result.run_id, 300)
+    run_response = client.wait_for_run_completion(result.run_id, 2400)
+    final_state = run_response.state
+    print(f"Pipeline run finished with state: {final_state}")
+    if final_state.lower() != "succeeded":
+        print(f"ERROR: pipeline run did not succeed (state={final_state})", file=sys.stderr)
+        sys.exit(1)

@@ -1,23 +1,14 @@
 # Build context: repo root (telco-revenue-assurance-agent/)
 # Both backend/ and agent/ must be in scope.
-FROM python:3.12-slim
+FROM registry.access.redhat.com/ubi9/python-312:latest
 
-WORKDIR /app
+WORKDIR /opt/app-root/src
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        gcc \
-    && rm -rf /var/lib/apt/lists/*
-
-COPY backend/requirements.txt /app/requirements.txt
+COPY backend/requirements.txt /opt/app-root/src/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY agent/   /app/agent/
-COPY backend/ /app/backend/
-
-# OpenShift: random UID in group 0 — g=u propagates permissions.
-RUN chown -R 1001:0 /app && chmod -R g=u /app
-
-USER 1001
+COPY agent/   /opt/app-root/src/agent/
+COPY backend/ /opt/app-root/src/backend/
 
 EXPOSE 8000
 

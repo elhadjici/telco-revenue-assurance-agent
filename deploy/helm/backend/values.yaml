@@ -6,6 +6,9 @@ image:
   name: telco-backend
   tag: "latest"
   pullPolicy: Always
+  # Optional: set to override registry/namespace/name with a full repo path.
+  # e.g. quay.io/rh-ai-quickstart/telco-revenue-assurance-agent-backend
+  repository: ""
 
 # ── Deployment settings ────────────────────────────────────────────────────────
 replicaCount: 1

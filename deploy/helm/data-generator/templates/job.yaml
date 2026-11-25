@@ -26,7 +26,7 @@ spec:
 
       containers:
         - name: data-generator
-          image: "{{ .Values.image.registry }}/{{ .Release.Namespace }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
+          image: "{{ if .Values.image.repository }}{{ .Values.image.repository }}:{{ .Values.image.tag }}{{ else }}{{ .Values.image.registry }}/{{ .Release.Namespace }}/{{ .Values.image.name }}:{{ .Values.image.tag }}{{ end }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
 
           # Arguments are passed as CLI flags to generate.py

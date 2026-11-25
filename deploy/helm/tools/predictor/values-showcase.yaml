@@ -36,7 +36,10 @@ qoe:
   poorThreshold: 65
   goodThreshold: 80
   artifacts:
-    endpoint: http://minio-service.showcase.svc:9000
+    # make deploy-predictor overrides this from S3_SCHEME/S3_HOST/S3_PORT.
+    # When installing directly with helm, override with:
+    #   --set qoe.artifacts.endpoint=https://aws-compatible-storage-api-<ns>.apps.<cluster>
+    endpoint: http://aws-compatible-storage.telco-revenue-assurance-agent.svc:7480
     prefix: models/starlink-qoe
     bucketSecret:
       name: my-data-connection

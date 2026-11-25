@@ -159,9 +159,9 @@ models:
   # To configure OGX with remote llm provider (without registering a specific model),
   # set url and optionally apiToken, then set enabled to true
   remote-llm:
-    url: "http://llama-3-1-8b-instruct-vllm-showcase.apps.ai-dev02.kni.syseng.devcluster.openshift.com/v1"
+    url: ""
     apiToken: ""
-    enabled: true
+    enabled: false
 
 # Vector IO provider persistence configuration
 # By default uses kv_default backend defined in storage section

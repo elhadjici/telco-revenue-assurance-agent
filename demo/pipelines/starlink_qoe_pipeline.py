@@ -10,6 +10,7 @@ Quality of Experience (QoE) Transformer model:
 """
 
 import os
+import sys
 
 import kfp.compiler
 from dotenv import load_dotenv
@@ -511,7 +512,7 @@ def starlink_qoe_pipeline(
     num_epochs: int = 200,
     batch_size: int = 128,
     learning_rate: float = 0.001,
-    s3_endpoint: str = "http://minio-service.showcase.svc:9000",
+    s3_endpoint: str = "http://aws-compatible-storage.telco-revenue-assurance-agent.svc:7480",
     s3_bucket: str = "mybucket",
     s3_model_path: str = "models/starlink-qoe",
 ):
@@ -582,6 +583,15 @@ if __name__ == "__main__":
     sa_ca_cert = "/run/secrets/kubernetes.io/serviceaccount/service-ca.crt"
     ssl_ca_cert = sa_ca_cert if os.path.isfile(sa_ca_cert) else None
 
+    # Build the S3 endpoint from env vars forwarded by the Makefile,
+    # falling back to the same defaults as the pipeline parameter so local
+    # runs without the Makefile still work.
+    s3_scheme = os.getenv("S3_SCHEME", "http")
+    s3_host = os.getenv("S3_HOST", "aws-compatible-storage.telco-revenue-assurance-agent.svc")
+    s3_port = os.getenv("S3_PORT", "7480")
+    s3_bucket = os.getenv("S3_BUCKET", "mybucket")
+    s3_endpoint = f"{s3_scheme}://{s3_host}:{s3_port}"
+
     client = kfp.Client(
         host=kubeflow_endpoint,
         existing_token=bearer_token,
@@ -589,8 +599,16 @@ if __name__ == "__main__":
     )
     result = client.create_run_from_pipeline_func(
         starlink_qoe_pipeline,
-        arguments={},
+        arguments={
+            "s3_endpoint": s3_endpoint,
+            "s3_bucket": s3_bucket,
+        },
         experiment_name="starlink-qoe",
     )
     print(f"Starting pipeline run with run_id: {result.run_id}")
-    client.wait_for_run_completion(result.run_id, 3600)
+    run_response = client.wait_for_run_completion(result.run_id, 3600)
+    final_state = run_response.state
+    print(f"Pipeline run finished with state: {final_state}")
+    if final_state.lower() != "succeeded":
+        print(f"ERROR: pipeline run did not succeed (state={final_state})", file=sys.stderr)
+        sys.exit(1)
