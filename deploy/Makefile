@@ -101,7 +101,7 @@ OGX_MODEL_ID   ?= $(LLM_MODEL_KEY)/$(LLM_MODEL_NAME)
 # Apply ImageStream + BuildConfig manifests then start binary builds.
 # Run from the repo root.
 
-build-all: build-backend build-data-fetch build-data-generator build-frontend build-pipeline-base build-predictor build-scoring
+build-all: build-backend build-data-fetch build-frontend build-pipeline-base build-predictor build-scoring
 
 build-backend:
 	oc apply -f build/backend/build.yaml -n $(NAMESPACE)
@@ -352,7 +352,7 @@ verify-frontend:
 	oc rollout status deployment/frontend -n $(NAMESPACE) --timeout=180s
 
 # ── Phase 1a: deploy-storage ───────────────────────────────────────────────────
-# Deploys and verifies storage layer: namespace, secrets, S4, pgvector, data-gen.
+# Deploys and verifies storage layer: namespace, secrets, S4, pgvector.
 # Runs before upload-datasets so S4 is available for dataset upload.
 verify-data-gen:
 	oc wait job/data-gen-data-generator -n $(NAMESPACE) \
@@ -462,5 +462,5 @@ undeploy-app: undeploy-frontend undeploy-scoring undeploy-backend undeploy-ogx-a
               undeploy-predictor undeploy-data-fetch undeploy-serving
 	@:
 
-undeploy-all: undeploy-app undeploy-data-gen undeploy-infra
+undeploy-all: undeploy-app undeploy-infra
 	@:

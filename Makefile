@@ -101,7 +101,6 @@ version:
 build-all-images:
 	docker build -t $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-backend:$(VERSION)         -f backend/Dockerfile .
 	docker build -t $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-data-fetch:$(VERSION)      tools/data-fetch/
-	docker build -t $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-data-generator:$(VERSION)  data-generator/
 	docker build -t $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-frontend:$(VERSION)        frontend/
 	docker build -t $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-pipeline-base:$(VERSION)   demo/pipeline-base/
 	docker build -t $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-predictor:$(VERSION)       tools/predictor/
@@ -111,7 +110,6 @@ build-all-images:
 push-all-images:
 	docker push $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-backend:$(VERSION)
 	docker push $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-data-fetch:$(VERSION)
-	docker push $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-data-generator:$(VERSION)
 	docker push $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-frontend:$(VERSION)
 	docker push $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-pipeline-base:$(VERSION)
 	docker push $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-predictor:$(VERSION)
@@ -128,7 +126,7 @@ helm-install-test:
 build:
 	$(MAKE) -C deploy build-all NAMESPACE=$(NAMESPACE)
 
-# Phase 1a: storage layer only (S4 + pgvector + data-gen). Verified before proceeding.
+# Phase 1a: storage layer only (S4 + pgvector). Verified before proceeding.
 deploy-storage:
 	@test -n "$(STORAGE_CLASS)" || (echo "Error: STORAGE_CLASS is required. Example: make deploy-all STORAGE_CLASS=gp3-csi" && exit 1)
 	$(MAKE) -C deploy deploy-storage $(DEPLOY_FLAGS)

@@ -102,7 +102,7 @@ The command runs the following phases in order:
 | `deploy-infra` | Creates namespace → deploys object storage (S4) + PostgreSQL → uploads datasets → deploys and verifies the KFP pipeline server (DSPA) |
 | `run-pipelines` | Submits three KFP training pipelines (churn, fraud, QoE) and waits for all to succeed |
 | `maybe-deploy-llm` | Local LLM only: deploys vLLM via `llm-service` Helm chart and waits for `InferenceService` Ready |
-| `deploy-app` | Deploys data generator, model serving (KServe), scoring job, data-fetch, predictor, OGX-AI agent, backend, and frontend |
+| `deploy-app` | Deploys model serving (KServe), scoring job, data-fetch, predictor, OGX-AI agent, backend, and frontend |
 
 ### Optional parameters
 
@@ -112,6 +112,37 @@ The command runs the following phases in order:
 | `PGVECTOR_PASSWORD` | `change-me` | Password for the PostgreSQL instance |
 | `S3_ACCESS_KEY` | `s4admin` | S3 access key for aws-compatible-storage |
 | `S3_SECRET_KEY` | `s4secret` | S3 secret key for aws-compatible-storage |
+
+## Optional components
+
+### Data Generator
+
+The `data-generator/` directory contains a standalone Kubernetes Job that generates synthetic telco customer and transaction records and writes them directly into PostgreSQL. It is **not needed for a standard deployment** — the pre-seeded pgvector image already includes a representative dataset — but it is useful if you want to:
+
+- Regenerate the dataset with a different size or distribution.
+- Experiment with custom data schemas or fraud/churn ratios.
+- Understand how the synthetic data is produced (Faker-based Python scripts with configurable customer profiles, billing records, and network QoE events).
+
+**How it works:** the Job connects to the PostgreSQL instance, drops and recreates the schema, then inserts a configurable number of customers (`NUM_CUSTOMERS`, default 10,000) along with associated CDRs, invoices, and QoE measurements. Each customer is assigned a randomised risk profile that drives the churn, fraud, and QoE scores the ML pipelines are trained against.
+
+To run it against an existing deployment:
+
+```bash
+make deploy-data-gen NAMESPACE=<namespace> PGVECTOR_PASSWORD=<password>
+```
+
+To build the image from source first (e.g. after modifying the generation logic):
+
+```bash
+make build-data-generator NAMESPACE=<namespace>
+make deploy-data-gen NAMESPACE=<namespace> PGVECTOR_PASSWORD=<password>
+```
+
+To tear it down when done:
+
+```bash
+make undeploy-data-gen NAMESPACE=<namespace>
+```
 
 ## Undeploy
 
