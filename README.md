@@ -125,25 +125,6 @@ The `data-generator/` directory contains a standalone Kubernetes Job that genera
 
 **How it works:** the Job connects to the PostgreSQL instance, drops and recreates the schema, then inserts a configurable number of customers (`NUM_CUSTOMERS`, default 10,000) along with associated CDRs, invoices, and QoE measurements. Each customer is assigned a randomised risk profile that drives the churn, fraud, and QoE scores the ML pipelines are trained against.
 
-To run it against an existing deployment:
-
-```bash
-make deploy-data-gen NAMESPACE=<namespace> PGVECTOR_PASSWORD=<password>
-```
-
-To build the image from source first (e.g. after modifying the generation logic):
-
-```bash
-make build-data-generator NAMESPACE=<namespace>
-make deploy-data-gen NAMESPACE=<namespace> PGVECTOR_PASSWORD=<password>
-```
-
-To tear it down when done:
-
-```bash
-make undeploy-data-gen NAMESPACE=<namespace>
-```
-
 ## Undeploy
 
 ```bash
