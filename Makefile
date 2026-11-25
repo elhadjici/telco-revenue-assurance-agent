@@ -100,7 +100,7 @@ version:
 # Builds all application images with docker. Distinct from the OpenShift
 # build target which requires a cluster (oc start-build).
 build-all-images:
-	docker build -t $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-backend:$(VERSION)         backend/
+	docker build -t $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-backend:$(VERSION)         -f backend/Dockerfile .      
 	docker build -t $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-data-fetch:$(VERSION)      tools/data-fetch/
 	docker build -t $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-data-generator:$(VERSION)  data-generator/
 	docker build -t $(IMAGE_REGISTRY)/$(IMAGE_PREFIX)-frontend:$(VERSION)        frontend/
