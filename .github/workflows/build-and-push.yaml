@@ -48,7 +48,7 @@ env:
 
 jobs:
   build-and-push:
-    if: github.repository_owner == 'rh-ai-quickstart' && github.event.repository.fork == false
+    if: github.repository_owner == 'elhadjici' && github.event.repository.fork == false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
