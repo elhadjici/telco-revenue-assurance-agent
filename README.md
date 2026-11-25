@@ -74,9 +74,36 @@ flowchart TB
 | `predict_fraud` | Prediction | Fraud flag via KServe |
 | `predict_qoe` | Prediction | QoE score via KServe |
 
+### S4 object storage
+
+[S4 (Super Simple Storage Service)](https://github.com/rh-aiservices-bu/s4) provides the project's S3-compatible object storage. The deployment installs the `aws-compatible-storage` Helm release from `deploy/helm/aws-compatible-storage/`, using the S4 container image `quay.io/rh-aiservices-bu/s4:0.3.2`. Its default data volume is 80 GiB, and a bucket-bootstrap Job creates `mybucket`.
+
+The application uses S4 through the S3 API:
+
+- **Dataset uploads:** `demo/scripts/upload_datasets.py` uploads the three training datasets under `data/`. It runs locally and connects through the `aws-compatible-storage-api` OpenShift route.
+- **Pipeline artifacts:** DSPA connects to the internal S4 service using `dashboard-dspa-secret`. Training writes model artifacts under `models/churn/1/`, `models/fraud/1/`, and `models/starlink-qoe/1/`.
+- **Model serving:** KServe uses the endpoint, bucket, and credentials in the `my-data-connection` secret to retrieve the trained models.
+- **QoE preprocessing:** the predictor loads `scaler.joblib` and `label_encoders.joblib` from `models/starlink-qoe/artifacts/`. The deployment sets its artifact endpoint from the same `S3_*` settings and supplies credentials from `my-data-connection`.
+
+Customer records, transactions, and prediction scores remain in PostgreSQL. S4 holds the datasets and artifacts used to train and serve the models.
+
 ## Usage
 
-Open the [deployed dashboard](https://frontend-telco-revenue-assurance-agent.apps.ptnr2.cert4.bos2.lab/) to explore the app. For your own deployment, open the `frontend` OpenShift route after completing the [deployment steps](#deploy), including data generation and scoring.
+After completing the [deployment steps](#deploy), including data generation and scoring, find the dashboard endpoint with the OpenShift CLI. Use your configured `NAMESPACE`, or fall back to the current OpenShift project, and list its routes:
+
+```bash
+NAMESPACE="${NAMESPACE:-$(oc project -q)}"
+oc get routes -n "$NAMESPACE"
+```
+
+Set `NAMESPACE` to your application's project if needed. Select the dashboard route from the list (`frontend` by default), then print its URL:
+
+```bash
+ROUTE_NAME=frontend  # Replace with your dashboard route name.
+oc get route "$ROUTE_NAME" -n "$NAMESPACE" -o jsonpath='https://{.spec.host}{"\n"}'
+```
+
+Open the printed URL in your browser to explore the app.
 
 The screenshots below show the deployed app with synthetic data. Metrics and the highest-risk region depend on the dataset and stored predictions; the figures in [Example Queries](#example-queries) are illustrative.
 
@@ -156,7 +183,7 @@ The agent scores QoE across all regions, finds the worst performer, then checks 
 | Worker | 2 | 16 | 32 GB |
 | GPU Worker (optional) | 1 | 16 | 64 GB + 1× NVIDIA A10 / A100 / L40S |
 
-> **GPU note:** A GPU node is required to run the LLM service on-cluster (Step 2). Without one, skip Step 2 and point `ogx-ai` at a remote OpenAI-compatible vLLM endpoint: `make deploy-ogx-ai VLLM_URL=<your-vllm-url>`.
+> **GPU note:** A GPU node is required when `deploy-all` hosts the LLM on-cluster. To use an existing OpenAI-compatible endpoint instead, set `LLM_URL`; the deployment then skips local LLM provisioning.
 
 ### Software
 
@@ -178,361 +205,76 @@ The agent scores QoE across all regions, finds the worst performer, then checks 
 
 ### Prerequisites
 
-Before deploying, ensure the following are in place:
+Before running `deploy-all`, ensure the following are in place:
 
-- **OCP CLI login** — you are authenticated against the target cluster (`oc whoami` returns your username).
-- **OCP internal registry enabled** — the cluster internal registry is running and accessible; required by the `make build-*` targets that push images via `BuildConfig` and `ImageStream`.
-- **Object storage** — an S3-compatible bucket (MinIO or equivalent) must be available; used by the Data Science Pipeline Application (DSPA) and the data connection for model artifacts. If not already deployed, use `make deploy-minio` (see Step 1 below).
-- **HF Token** — an authenticated hugging face token must be avaliable. it is used for deploying the repositories Llama model, so you must have access to whichever model you plan on deploying. 
+- **CLI tools and login** — `make`, `helm`, `oc`, `envsubst`, `curl`, and Python 3.12 with virtual-environment support are installed, and `oc whoami` returns your cluster username. The deployment creates `.venv` and installs the dataset-upload and KFP dependencies there.
+- **Container images** — application and pipeline-base images must be available. For in-cluster builds, enable the OpenShift internal registry and use `make deploy-namespace` followed by `make build-all`. Alternatively, configure `IMAGE_REGISTRY` for published project images.
+- **Persistent storage** — set `STORAGE_CLASS` to a storage class available on your cluster (`oc get storageclass` lists them). It is required for the S4 data volume and the DSPA database. `deploy-all` provisions S4 and its default bucket; datasets and trained models are prepared during deployment.
+- **LLM access** — either configure a running endpoint with `LLM_URL`, or provide a GPU node and export an `HF_TOKEN` with access to the [Llama model](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct) for local deployment. The default `LLM_MODEL_NAME` is `meta-llama/Llama-3.1-8B-Instruct`; set it to the model served by your endpoint when using another supported model.
 
 ## Deploy
 
-### 0. Set environment variables
+### Configure the deployment
 
-Export these once before running any step:
+Use the S4-enabled application checkout containing `Makefile`, `deploy/Makefile`, and `deploy/helm/aws-compatible-storage/`. From the repository root, configure the namespace, storage class, credentials, and LLM endpoint:
 
 ```bash
 export NAMESPACE=telco-revenue-assurance-agent
-export PGVECTOR_PASSWORD=<your-password>
-export MINIO_PASSWORD=<your-minio-password>
-export HF_TOKEN=<your-huggingface-token>
+export STORAGE_CLASS="<your-storage-class>"
+export PGVECTOR_PASSWORD="<your-database-password>"
+export S3_ACCESS_KEY="<your-s4-access-key>"
+export S3_SECRET_KEY="<your-s4-secret-key>"
+export LLM_URL="https://<your-vllm-host>/v1"
 ```
 
-> `NAMESPACE` defaults to `telco-revenue-assurance-agent` and is inherited by all `make` targets automatically — no need to repeat it on each command. To use a different namespace, change the export above. Override any other value inline: `make deploy-X VAR=value`.
+These S3 credentials configure both S4 and its clients. Export `LLM_API_TOKEN` if the remote endpoint requires authentication. To deploy the LLM on-cluster, leave `LLM_URL` unset and export `HF_TOKEN` instead; `deploy-all` provisions the model and waits for it to become ready.
 
-Clone the repo and change into the repo root:
+S4 defaults to the application namespace (`S4_NAMESPACE=$NAMESPACE`). In-cluster clients use `http://aws-compatible-storage.${S4_NAMESPACE}.svc:7480`, with `S3_HOST`, `S3_PORT`, and `S3_SCHEME` supplying those values. The default bucket is `mybucket`. The local dataset uploader discovers the HTTPS `aws-compatible-storage-api` route; override `S3_EXTERNAL_ENDPOINT` if that route differs in your environment. Port 7480 serves the S3 API; port 5000 serves the web UI.
+
+For a separate storage namespace, create it first and export `S4_NAMESPACE` before deploying. If changing `S3_BUCKET`, also update `buckets.names` in `deploy/helm/aws-compatible-storage/values.yaml` so the bootstrap Job creates that bucket. The DSPA template derives its storage hostname from `S4_NAMESPACE`; overriding `S3_HOST` alone does not redirect DSPA to an external object store.
+
+### Deploy the application
+
+From the repository root, run:
 
 ```bash
-git clone https://github.com/rh-ai-quickstart/telco-revenue-assurance-agent.git
-cd telco-revenue-assurance-agent
+make deploy-all NAMESPACE="$NAMESPACE"
 ```
 
----
+In a Makefile recipe, the equivalent invocation is `make deploy-all NAMESPACE=$(NAMESPACE)`. Use the shell form above when running the command in a terminal.
 
-### Step 1 — MinIO (object storage)
+The root target performs the deployment in phases:
 
-Deploys MinIO into a dedicated namespace (`showcase` by default). MinIO is used to store training datasets, KFP pipeline artifacts, and trained model files consumed by KServe. Skip this step if you already have an S3-compatible object store available.
+1. Create the namespace and secrets, install S4 and PostgreSQL, and generate customer data (unless `PGVECTOR_IMAGE` supplies a pre-seeded database).
+2. Upload training datasets to S4, then deploy DSPA.
+3. Run the churn, fraud, and QoE training pipelines and wait for successful runs to write their artifacts to S4.
+4. Provision the local LLM if `LLM_URL` is unset, then deploy KServe resources, data-fetch, predictor, OGX, backend, scoring, and frontend.
+
+The target includes storage and application readiness checks and waits for scoring to complete. Container images must already be built or published. Run serially, with no parallel `-j` setting in the command or `MAKEFLAGS`, so the prerequisite targets execute in order.
+
+### Verify and open the dashboard
+
+Check that services and models become ready and the scoring job completes:
 
 ```bash
-make deploy-minio
+oc get pods,inferenceservices,jobs -n "$NAMESPACE"
+oc logs job/scoring -n "$NAMESPACE"
 ```
 
-Override the namespace or storage class if needed:
+Print the dashboard URL:
 
 ```bash
-make deploy-minio MINIO_NAMESPACE=showcase MINIO_STORAGE_CLASS=gp3-csi
+oc get route frontend -n "$NAMESPACE" -o jsonpath='https://{.spec.host}{"\n"}'
 ```
 
-**Verify:**
-```bash
-oc get pods -n showcase -l app=minio
-oc get route minio-api minio-ui -n showcase
-```
-Expected: pod in `Running` state and two routes with assigned hostnames.
-
----
-
-### Step 2 — Namespace
-
-Creates the OpenShift project and labels it as an OpenShift AI Data Science Project. The default namespace is `telco-revenue-assurance-agent`.
-
-```bash
-make deploy-namespace
-```
-
-**Verify:**
-```bash
-oc get project $NAMESPACE
-```
-Expected: project in `Active` state.
-
----
-
-### Step 3 — LLM Service (vLLM)
-
-Deploys the vLLM serving runtime with Llama 3.1 8B Instruct into the project namespace. Requires a GPU node.
-
-> **Demo note:** This quickstart was validated using a remote vLLM endpoint on a separate GPU cluster. If no GPU node is available, skip this step and pass `VLLM_URL` pointing to your remote endpoint when deploying OGX in Step 12.
-
-**HuggingFace prerequisites:**
-- Create an access token at [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
-- Request access to the model at [huggingface.co/meta-llama/Llama-3.1-8B-Instruct](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct)
-
-```bash
-make deploy-llm-service HF_TOKEN=$HF_TOKEN
-```
-
-Once deployed, the internal vLLM service URL is `http://llama-3-1-8b-instruct-vllm.$NAMESPACE.svc:80/v1`. Pass it when deploying OGX in Step 12:
-
-```bash
-make deploy-ogx-ai VLLM_URL=http://llama-3-1-8b-instruct-vllm.$NAMESPACE.svc:80/v1
-```
-
-**Verify:**
-```bash
-oc get inferenceservice llama-3-1-8b-instruct -n $NAMESPACE
-```
-Expected: `InferenceService` in `Ready` state.
-
----
-
-### Step 4 — Secrets
-
-Creates three secrets in the project namespace (`telco-revenue-assurance-agent` by default): the database URL, the MinIO data connection for DSPA, and the S3 data connection for KServe model serving.
-
-```bash
-make deploy-secrets \
-  PGVECTOR_PASSWORD=$PGVECTOR_PASSWORD \
-  MINIO_PASSWORD=$MINIO_PASSWORD
-```
-
-**Verify:**
-```bash
-oc get secret database-secret dashboard-dspa-secret my-data-connection \
-  -n $NAMESPACE
-```
-Expected: all three secrets show `Opaque` type.
-
----
-
-### Step 5 — PostgreSQL
-
-Deploys a PostgreSQL instance. This is the primary data store for customer, transaction, and scoring data.
-
-```bash
-make deploy-pgvector \
-  PGVECTOR_PASSWORD=$PGVECTOR_PASSWORD
-```
-
-**Verify:**
-```bash
-oc get pods -n $NAMESPACE -l app.kubernetes.io/instance=pgvector
-```
-Expected: pod in `Running` state. Confirm connectivity:
-```bash
-oc exec postgres-0 -n $NAMESPACE -- psql -U postgres -c '\l'
-```
-
----
-
-### Step 6 — Data Science Pipeline Application (DSPA)
-
-Deploys the Kubeflow Pipelines (KFP) server backed by MinIO object storage. This is used to run the ML training pipelines for churn, fraud, and QoE models.
-
-```bash
-make deploy-pipelines
-```
-
-> **MinIO host:** the default is `minio-service.showcase.svc:9000`. If your MinIO is external, override: `make deploy-pipelines MINIO_HOST=minio-api-<ns>.apps.<cluster> MINIO_SCHEME=https MINIO_PORT=443`.
-
-**Verify:**
-```bash
-oc get datasciencepipelinesapplication dspa -n $NAMESPACE
-```
-Expected: `READY` column is `True`. For full status:
-```bash
-oc get datasciencepipelinesapplication dspa -n $NAMESPACE \
-  -o jsonpath='{.status.conditions[?(@.type=="Ready")].message}{"\n"}'
-```
-
----
-
-### Step 7 — ML Training Pipelines
-
-Builds the pipeline base image, uploads training datasets to MinIO, then runs the three KFP training pipelines (churn, fraud/RAFM, QoE). Each pipeline trains a model and writes the artifact to S3 at a path that KServe will serve from.
-
-```bash
-
-# Run the three training pipelines
-make run-pipeline-churn
-make run-pipeline-fraud
-make run-pipeline-qoe
-```
-
-Each `run-pipeline-*` command auto-detects the KFP endpoint and bearer token from your active OCP session and submits the pipeline run programmatically.
-
-| Make target | Model trained | S3 output path |
-|---|---|---|
-| `run-pipeline-churn` | Churn (LightGBM) | `models/churn/1/` |
-| `run-pipeline-fraud` | Fraud/RAFM (ONNX) | `models/fraud/1/` |
-| `run-pipeline-qoe` | QoE (ONNX) | `models/starlink-qoe/1/` |
-
-**Verify:**
-
-```bash
-oc get route ds-pipeline-dspa -n $NAMESPACE \
-  -o jsonpath='{.spec.host}{"\n"}'
-```
-
-Open the printed URL in a browser → **Experiments** → confirm each pipeline run completes successfully. Model files should appear in MinIO at the S3 output paths listed above.
-
----
-
-### Step 8 — Model Serving (KServe InferenceServices)
-
-Deploys three `ServingRuntime` and three `InferenceService` resources for the churn (LightGBM), fraud/RAFM (ONNX), and QoE (ONNX) models.
-
-```bash
-make deploy-serving
-```
-
-**Verify:**
-```bash
-oc get servingruntime,inferenceservice -n $NAMESPACE
-```
-Expected: 3 `ServingRuntime` and 3 `InferenceService` resources. Models remain `Unknown/Loading` until the pipeline runs in Step 5 have written model files to S3 — that is expected at this stage.
-
----
-
-### Step 9 — Data Generator
-
-Builds and runs a one-off Kubernetes Job that populates PostgreSQL with 10,000 synthetic but statistically realistic telco customer and transaction records.
-
-```bash
-make build-data-generator
-make deploy-data-gen \
-  PGVECTOR_PASSWORD=$PGVECTOR_PASSWORD
-```
-
-The Makefile waits for the Job to complete (up to 10 minutes). To follow logs live:
-```bash
-oc logs -f -l app.kubernetes.io/instance=data-gen -n $NAMESPACE
-```
-
-**Verify:**
-```bash
-oc get job -l app.kubernetes.io/instance=data-gen -n $NAMESPACE
-oc exec postgres-0 -n $NAMESPACE -- psql -U postgres -d postgres \
-  -c "SELECT COUNT(*) FROM customers;"
-```
-Expected: Job in `Complete` state, query returns `10000`.
-
----
-
-### Step 10 — Data Fetch Tool
-
-Builds and deploys a FastAPI microservice that exposes structured SQL queries over HTTP. The agent and predictor use it to look up customer and transaction records, as well as pre-computed inference results (churn, fraud, and QoE scores written by the scoring job), without direct database access.
-
-```bash
-make build-data-fetch
-make deploy-data-fetch
-```
-
-**Verify:**
-```bash
-oc get pods -n $NAMESPACE -l app.kubernetes.io/instance=data-fetch
-oc get svc data-fetch -n $NAMESPACE
-```
-Expected: pod `Running`, service `data-fetch` on port `8080`.
-
----
-
-### Step 11 — Predictor Tool
-
-Builds and deploys the predictor service that wraps the three KServe InferenceService endpoints. The agent calls this tool to score individual customers for churn risk, fraud, and QoE.
-
-```bash
-make build-predictor
-make deploy-predictor
-```
-
-**Verify:**
-```bash
-oc get pods -n $NAMESPACE -l app.kubernetes.io/instance=predictor
-oc get svc predictor -n $NAMESPACE
-```
-Expected: pod `Running`, service `predictor` on port `8080`.
-
----
-
-### Step 12 — ogx-ai / OGX Agent
-
-Deploys the OGX agent server (ogx-ai). This is the ReAct loop that receives analyst questions, decides which tools to call, and streams responses back to the backend.
-
-If you deployed the LLM service in Step 2, pass the internal vLLM URL:
-
-```bash
-make deploy-ogx-ai VLLM_URL=http://llama-3-1-8b-instruct-vllm.$NAMESPACE.svc:80/v1
-```
-
-Otherwise, pass your remote vLLM endpoint:
-
-```bash
-make deploy-ogx-ai VLLM_URL=<your-vllm-endpoint>/v1
-```
-
-**Verify:**
-```bash
-oc get pods -n $NAMESPACE -l app.kubernetes.io/instance=ogx-ai
-oc exec -n $NAMESPACE deploy/ogx-ai -- \
-  curl -s http://localhost:8321/v1/models | python3 -m json.tool
-```
-Expected: pod `Running`, models list includes `remote-llm/meta-llama/Llama-3.1-8B-Instruct`.
-
----
-
-### Step 13 — Backend
-
-Builds and deploys the FastAPI backend that orchestrates dashboard metrics queries, agent chat sessions, and streaming responses to the frontend.
-
-```bash
-make build-backend
-make deploy-backend
-```
-
-**Verify:**
-```bash
-oc get pods -n $NAMESPACE -l app.kubernetes.io/instance=backend
-curl -sk https://$(oc get route backend -n $NAMESPACE \
-  -o jsonpath='{.spec.host}')/health
-```
-Expected: `{"status":"ok"}`.
-
----
-
-### Step 14 — Scoring Job
-
-Builds and runs a one-off Job that calls all three prediction models for every customer and writes the scores back to PostgreSQL. The dashboard and agent rely on these pre-computed scores.
-
-```bash
-make build-scoring
-make deploy-scoring
-```
-
-**Verify:**
-```bash
-oc get job scoring -n $NAMESPACE
-oc logs job/scoring -n $NAMESPACE
-```
-Expected: Job completes, logs show churn/fraud/QoE scores written for all 10,000 customers.
-
----
-
-### Step 15 — Frontend
-
-Builds and deploys the React dashboard. It includes a regional risk metrics view and the floating AI chat panel.
-
-```bash
-make build-frontend
-make deploy-frontend
-```
-
-**Verify:**
-```bash
-oc get route -n $NAMESPACE
-```
-Open the `frontend` route URL in a browser. The dashboard should display regional risk metrics and the AI chat panel should respond to analyst questions in the bottom-right corner.
+Open the URL and follow the [usage walkthrough](#usage). If scoring has completed but metrics are missing, see [Scoring job completes but dashboard shows no metrics](#scoring-job-completes-but-dashboard-shows-no-metrics).
 
 ## Delete
 
-```bash
-make undeploy-all
-```
-
-This uninstalls all Helm releases and removes the KServe resources. Persistent volumes are retained by default. To delete them:
+The root `undeploy-all` target removes the application, S4, and the local LLM, and deletes **all PVCs in `$NAMESPACE`**. This removes persisted database and S4 data in the default configuration; the namespace itself is retained.
 
 ```bash
-oc delete pvc --all -n $NAMESPACE
+make undeploy-all NAMESPACE="$NAMESPACE"
 ```
 
 ## Troubleshooting
@@ -546,19 +288,19 @@ oc exec -n $NAMESPACE deploy/ogx-ai -- \
   curl -s http://localhost:8321/v1/models | python3 -m json.tool
 ```
 
-The model ID must match the `ogx.modelId` value in `deploy/helm/backend/values.yaml`. The expected value for a `remote-llm` provider is `remote-llm/meta-llama/Llama-3.1-8B-Instruct`.
+The model ID must match the backend chart's `ogx.modelId`, which deployment sets from `OGX_MODEL_ID`. For the default model, it is `llama-3-1-8b-instruct/meta-llama/Llama-3.1-8B-Instruct`. Check that `LLM_MODEL_NAME` and `LLM_URL` match the model served by your endpoint.
 
 ---
 
 ### KServe InferenceServices stuck in `Unknown` or `Loading`
 
-This is expected until the ML training pipelines (Step 6) have written model files to MinIO. Verify model files exist:
+This is expected until the ML training pipelines have written model files to S4. Check the model-serving status:
 
 ```bash
 oc get inferenceservice -n $NAMESPACE
 ```
 
-If pipelines have completed and models are still not ready, check that the `my-data-connection` secret points to the correct MinIO endpoint and bucket.
+If pipelines have completed and models are still not ready, check that the `my-data-connection` secret points to the correct S4 S3 API endpoint and bucket.
 
 ---
 
@@ -573,16 +315,26 @@ oc logs bc/pipeline-base -n $NAMESPACE
 
 ---
 
-### MinIO connection refused from DSPA or pipelines
+### S4 connection or bucket errors from DSPA or pipelines
 
-Verify MinIO is reachable from the project namespace:
+Check the S4 deployment, its S3 service, and the bucket-bootstrap Job in the storage namespace:
 
 ```bash
-oc run minio-test --rm -it --image=curlimages/curl --restart=Never -n $NAMESPACE -- \
-  curl -s http://minio-service.showcase.svc:9000/minio/health/live
+S4_NAMESPACE="${S4_NAMESPACE:-$NAMESPACE}"
+oc rollout status deployment/aws-compatible-storage -n "$S4_NAMESPACE" --timeout=120s
+oc get service aws-compatible-storage -n "$S4_NAMESPACE"
+oc logs job/aws-compatible-storage-bucket-bootstrap -n "$S4_NAMESPACE"
 ```
 
-Expected: HTTP 200. If not, check MinIO pod status in the `showcase` namespace.
+The service should expose the S3 API on port 7480, and the bootstrap logs should confirm `Verified: mybucket` (or your configured bucket). If the volume is pending, check the PVC and `STORAGE_CLASS`. If storage is ready but a client fails, check its endpoint and bucket configuration and ensure `dashboard-dspa-secret` and `my-data-connection` use the S4 credentials configured at deployment.
+
+For local dataset-upload failures, retrieve the S3 API route:
+
+```bash
+oc get route aws-compatible-storage-api -n "$S4_NAMESPACE" -o jsonpath='https://{.spec.host}{"\n"}'
+```
+
+The uploader must be able to reach this URL from your workstation. Use `S3_EXTERNAL_ENDPOINT` to override route discovery; the web UI route is not an S3 API endpoint.
 
 ---
 
