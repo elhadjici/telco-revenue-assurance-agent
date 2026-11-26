@@ -6,10 +6,12 @@ Detect churn risk, billing fraud, and network QoE issues using a conversational 
 
 - [Description](#description)
 - [Architecture](#architecture)
+  - [AI/ML workflow](#aiml-workflow)
 - [Usage](#usage)
 - [Example Queries](#example-queries)
 - [Requirements](#requirements)
 - [Deploy](#deploy)
+- [Optional components](#optional-components)
 - [Delete](#delete)
 - [Troubleshooting](#troubleshooting)
 - [Reference](#reference)
@@ -19,9 +21,9 @@ Detect churn risk, billing fraud, and network QoE issues using a conversational 
 
 This AI quickstart shows how a telecom revenue assurance team can use a conversational AI agent to investigate customer churn risk, billing fraud, and network Quality of Experience (QoE) across customer segments in real time. Rather than running manual SQL queries or switching between dashboards, an analyst asks the agent in plain language and receives model-backed insights in seconds — with the agent deciding autonomously which tools and models to call.
 
-The agent runs on Red Hat® OpenShift AI using OGX with a Llama 3.1 8B Instruct model served by vLLM. It uses a ReAct loop to decide when to query the customer database, when to invoke the churn or fraud prediction models, and when to fetch QoE metrics — combining SQL data retrieval with live ML inference to produce actionable analyst guidance. All three prediction models (churn, fraud/RAFM, and QoE) are served as KServe InferenceServices on Red Hat OpenShift AI, using LightGBM and ONNX runtimes.
+The agent runs on Red Hat® OpenShift AI using OGX with a Llama 3.1 8B Instruct model served by vLLM. It uses a ReAct loop to decide when to query the customer database, when to invoke the churn, fraud or QoE prediction models, and when to retrieve customer and transaction data — combining SQL data retrieval with live ML inference to produce actionable analyst guidance. All three prediction models (churn, fraud/RAFM, and QoE) are served as KServe InferenceServices on Red Hat OpenShift AI, using LightGBM and ONNX runtimes.
 
-A React dashboard gives analysts a high-level regional risk summary and surfaces the same AI agent through a floating chat panel. A FastAPI backend orchestrates communication between the UI, the OGX agent, and a PostgreSQL database populated by a one-off data generator job using synthetic but statistically realistic telco customer, transaction, and network data.
+A React dashboard gives analysts a high-level regional risk summary and surfaces the same AI agent through a floating chat panel. A FastAPI backend orchestrates communication between the UI, the OGX agent, and a PostgreSQL database pre-seeded with synthetic telco customer, transaction, and network data.
 
 At deployment, a scoring job pre-computes churn, fraud, and QoE predictions for all customers and writes them to the database. The dashboard reads these stored scores to display summary metrics — churn rate, fraud count, and average QoE by region — without hitting the models at runtime. The agent operates on-demand, filtering, slicing, and cross-referencing the same model APIs to answer analyst follow-up questions in real time.
 
@@ -42,7 +44,7 @@ flowchart TB
     PredTools -->|KServe v2 🔒| ChurnModel[KServe: Churn Model]
     PredTools -->|KServe v2 🔒| FraudModel[KServe: Fraud Model]
     PredTools -->|KServe v2 🔒| QoEModel[KServe: QoE Model]
-    DataGen[Data Generator] -->|SQL| DB
+    DataGen[Data Generator] -.->|SQL optional| DB
     Scoring[Scoring Job] -->|HTTP batch predict| PredTools
     Scoring -->|SQL write scores 🔒| DB
 ```
@@ -56,7 +58,7 @@ flowchart TB
 | **Data Fetch Tool** | Queries PostgreSQL for customer and transaction data |
 | **Prediction Tools** | Wraps KServe Churn, Fraud, and QoE model endpoints |
 | **PostgreSQL** | Customer, transaction, and regional QoE data store |
-| **Data Generator** | One-off job that populates the database with synthetic telco data |
+| **Data Generator** | Optional one-off job to regenerate the synthetic dataset — not required when using the pre-seeded pgvector image |
 | **Scoring Job** | One-off batch job that runs churn, fraud, and QoE predictions for all customers and writes scores back to PostgreSQL |
 | **KServe Models** | LightGBM (churn), ONNX (fraud/RAFM), ONNX (QoE) |
 
@@ -74,33 +76,25 @@ flowchart TB
 | `predict_fraud` | Prediction | Fraud flag via KServe |
 | `predict_qoe` | Prediction | QoE score via KServe |
 
-### S4 object storage
+### AI/ML workflow
 
-[S4 (Super Simple Storage Service)](https://github.com/rh-aiservices-bu/s4) provides the project's S3-compatible object storage. The deployment installs the `aws-compatible-storage` Helm release from `deploy/helm/aws-compatible-storage/`, using the S4 container image `quay.io/rh-aiservices-bu/s4:0.3.2`. Its default data volume is 80 GiB, and a bucket-bootstrap Job creates `mybucket`.
-
-The application uses S4 through the S3 API:
-
-- **Dataset uploads:** `demo/scripts/upload_datasets.py` uploads the three training datasets under `data/`. It runs locally and connects through the `aws-compatible-storage-api` OpenShift route.
-- **Pipeline artifacts:** DSPA connects to the internal S4 service using `dashboard-dspa-secret`. Training writes model artifacts under `models/churn/1/`, `models/fraud/1/`, and `models/starlink-qoe/1/`.
-- **Model serving:** KServe uses the endpoint, bucket, and credentials in the `my-data-connection` secret to retrieve the trained models.
-- **QoE preprocessing:** the predictor loads `scaler.joblib` and `label_encoders.joblib` from `models/starlink-qoe/artifacts/`. The deployment sets its artifact endpoint from the same `S3_*` settings and supplies credentials from `my-data-connection`.
+Datasets are pulled from Hugging Face and uploaded to S4 (`aws-compatible-storage`), the in-cluster S3-compatible store. Three Kubeflow Pipelines v2 runs (churn, fraud/RAFM, QoE) read from S4, train their models, and write the artifacts back under `models/churn/1/`, `models/fraud/1/`, and `models/starlink-qoe/1/`. KServe loads each artifact at startup; the predictor tool and scoring job call the resulting inference endpoints over HTTP. S4 also supplies the DSPA pipeline server and KServe with credentials through `dashboard-dspa-secret` and `my-data-connection`.
 
 Customer records, transactions, and prediction scores remain in PostgreSQL. S4 holds the datasets and artifacts used to train and serve the models.
 
 ## Usage
 
-After completing the [deployment steps](#deploy), including data generation and scoring, find the dashboard endpoint with the OpenShift CLI. Use your configured `NAMESPACE`, or fall back to the current OpenShift project, and list its routes:
+After completing the [deployment steps](#deploy), find the dashboard endpoint with the OpenShift CLI:
 
 ```bash
 NAMESPACE="${NAMESPACE:-$(oc project -q)}"
 oc get routes -n "$NAMESPACE"
 ```
 
-Set `NAMESPACE` to your application's project if needed. Select the dashboard route from the list (`frontend` by default), then print its URL:
+Print the dashboard URL:
 
 ```bash
-ROUTE_NAME=frontend  # Replace with your dashboard route name.
-oc get route "$ROUTE_NAME" -n "$NAMESPACE" -o jsonpath='https://{.spec.host}{"\n"}'
+oc get route frontend -n "$NAMESPACE" -o jsonpath='https://{.spec.host}{"\n"}'
 ```
 
 Open the printed URL in your browser to explore the app.
@@ -141,13 +135,13 @@ Compare customer counts, churn exposure, fraud rates, and QoE across the same ro
 
 ![Dashboard with the Revenue assistant showing database tool calls and a response prioritizing North based on churn, revenue at risk, and QoE](docs/images/dashboard-assistant.png)
 
-*A completed response to “Which region needs attention first?” using the deployed dataset.*
+*A completed response to "Which region needs attention first?" using the deployed dataset.*
 
 Try follow-ups such as:
 
-- “Why is churn high in North?” — substitute the region highlighted in your dashboard.
-- “Are fraud-flagged customers also churning?”
-- “Which customers in North are at risk of churning?”
+- "Why is churn high in North?" — substitute the region highlighted in your dashboard.
+- "Are fraud-flagged customers also churning?"
+- "Which customers in North are at risk of churning?"
 
 Use the findings to decide which coverage, retention, or billing investigation to pursue. The agent recommends actions; it does not apply retention offers or block accounts. Dashboard metrics come from stored scoring results, while the assistant can query the data and invoke prediction tools on demand.
 
@@ -183,7 +177,7 @@ The agent scores QoE across all regions, finds the worst performer, then checks 
 | Worker | 2 | 16 | 32 GB |
 | GPU Worker (optional) | 1 | 16 | 64 GB + 1× NVIDIA A10 / A100 / L40S |
 
-> **GPU note:** A GPU node is required when `deploy-all` hosts the LLM on-cluster. To use an existing OpenAI-compatible endpoint instead, set `LLM_URL`; the deployment then skips local LLM provisioning.
+> **GPU note:** A GPU node is required only for local LLM deployment. Without one, use Option A (remote LLM) and point the stack at an existing OpenAI-compatible vLLM endpoint.
 
 ### Software
 
@@ -208,49 +202,84 @@ The agent scores QoE across all regions, finds the worst performer, then checks 
 Before running `deploy-all`, ensure the following are in place:
 
 - **CLI tools and login** — `make`, `helm`, `oc`, `envsubst`, `curl`, and Python 3.12 with virtual-environment support are installed, and `oc whoami` returns your cluster username. The deployment creates `.venv` and installs the dataset-upload and KFP dependencies there.
-- **Container images** — application and pipeline-base images must be available. For in-cluster builds, enable the OpenShift internal registry and use `make deploy-namespace` followed by `make build-all`. Alternatively, configure `IMAGE_REGISTRY` for published project images.
-- **Persistent storage** — set `STORAGE_CLASS` to a storage class available on your cluster (`oc get storageclass` lists them). It is required for the S4 data volume and the DSPA database. `deploy-all` provisions S4 and its default bucket; datasets and trained models are prepared during deployment.
-- **LLM access** — either configure a running endpoint with `LLM_URL`, or provide a GPU node and export an `HF_TOKEN` with access to the [Llama model](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct) for local deployment. The default `LLM_MODEL_NAME` is `meta-llama/Llama-3.1-8B-Instruct`; set it to the model served by your endpoint when using another supported model.
+- **Container images** — pre-built images are published to `quay.io/rh-ai-quickstart`; no extra configuration needed.
+- **Storage class** — know the PVC storage class name available on your cluster (e.g. `gp3-csi`); required by the DSPA pipeline server and object storage (`oc get storageclass` lists them).
+- **LLM access** — either configure a running endpoint with `LLM_URL`, or provide a GPU node and a HuggingFace token with access to the [Llama model](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct) for local deployment. The default `LLM_MODEL_NAME` is `meta-llama/Llama-3.1-8B-Instruct`; set it to the model served by your endpoint when using another supported model.
 
 ## Deploy
 
-### Configure the deployment
-
-Use the S4-enabled application checkout containing `Makefile`, `deploy/Makefile`, and `deploy/helm/aws-compatible-storage/`. From the repository root, configure the namespace, storage class, credentials, and LLM endpoint:
+Clone the repo and change into the repo root:
 
 ```bash
-export NAMESPACE=telco-revenue-assurance-agent
-export STORAGE_CLASS="<your-storage-class>"
-export PGVECTOR_PASSWORD="<your-database-password>"
-export S3_ACCESS_KEY="<your-s4-access-key>"
-export S3_SECRET_KEY="<your-s4-secret-key>"
-export LLM_URL="https://<your-vllm-host>/v1"
+git clone https://github.com/rh-ai-quickstart/telco-revenue-assurance-agent.git
+cd telco-revenue-assurance-agent
 ```
 
-These S3 credentials configure both S4 and its clients. Export `LLM_API_TOKEN` if the remote endpoint requires authentication. To deploy the LLM on-cluster, leave `LLM_URL` unset and export `HF_TOKEN` instead; `deploy-all` provisions the model and waits for it to become ready.
+The full stack deploys with a single command. Choose the option that matches your LLM setup.
 
-S4 defaults to the application namespace (`S4_NAMESPACE=$NAMESPACE`). In-cluster clients use `http://aws-compatible-storage.${S4_NAMESPACE}.svc:7480`, with `S3_HOST`, `S3_PORT`, and `S3_SCHEME` supplying those values. The default bucket is `mybucket`. The local dataset uploader discovers the HTTPS `aws-compatible-storage-api` route; override `S3_EXTERNAL_ENDPOINT` if that route differs in your environment. Port 7480 serves the S3 API; port 5000 serves the web UI.
+### Required parameters
 
-For a separate storage namespace, create it first and export `S4_NAMESPACE` before deploying. If changing `S3_BUCKET`, also update `buckets.names` in `deploy/helm/aws-compatible-storage/values.yaml` so the bootstrap Job creates that bucket. The DSPA template derives its storage hostname from `S4_NAMESPACE`; overriding `S3_HOST` alone does not redirect DSPA to an external object store.
+| Parameter | Required for | Description |
+|-----------|-------------|-------------|
+| `STORAGE_CLASS` | Always | PVC storage class for DSPA and object storage (e.g. `gp3-csi`) |
+| `LLM_URL` | Remote LLM | Base URL of an OpenAI-compatible vLLM endpoint (e.g. `https://my-vllm.apps.cluster/v1`) |
+| `LLM_API_TOKEN` | Remote LLM with auth | Bearer token for the remote endpoint — omit if the endpoint has no auth |
+| `LLM_MODEL_NAME` | Local LLM | HuggingFace model identifier to serve in-cluster (e.g. `meta-llama/Llama-3.1-8B-Instruct`) |
+| `HF_TOKEN` | Local LLM | HuggingFace access token — required to pull gated models |
 
-### Deploy the application
+### Option A — Remote LLM
 
-From the repository root, run:
+Use this when you have an existing OpenAI-compatible vLLM endpoint (no GPU node required).
 
 ```bash
-make deploy-all NAMESPACE="$NAMESPACE"
+make deploy-all \
+  NAMESPACE=telco-revenue-assurance-agent \
+  STORAGE_CLASS=gp3-csi \
+  LLM_URL=http://llama-3-1-8b-instruct-vllm-showcase.apps.xxx/v1 \
+  LLM_API_TOKEN=<token>
 ```
 
-In a Makefile recipe, the equivalent invocation is `make deploy-all NAMESPACE=$(NAMESPACE)`. Use the shell form above when running the command in a terminal.
+> `LLM_API_TOKEN` is optional — omit it if the endpoint requires no authentication.
 
-The root target performs the deployment in phases:
+### Option B — Local LLM (GPU required)
 
-1. Create the namespace and secrets, install S4 and PostgreSQL, and generate customer data (unless `PGVECTOR_IMAGE` supplies a pre-seeded database).
-2. Upload training datasets to S4, then deploy DSPA.
-3. Run the churn, fraud, and QoE training pipelines and wait for successful runs to write their artifacts to S4.
-4. Provision the local LLM if `LLM_URL` is unset, then deploy KServe resources, data-fetch, predictor, OGX, backend, scoring, and frontend.
+Use this to deploy vLLM in-cluster. A GPU node with at least 1× NVIDIA A10 / A100 / L40S is required.
 
-The target includes storage and application readiness checks and waits for scoring to complete. Container images must already be built or published. Run serially, with no parallel `-j` setting in the command or `MAKEFLAGS`, so the prerequisite targets execute in order.
+**HuggingFace prerequisites:**
+- Create an access token at [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
+- Request access to the model at [huggingface.co/meta-llama/Llama-3.1-8B-Instruct](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct)
+
+```bash
+make deploy-all \
+  NAMESPACE=telco-local-llm \
+  STORAGE_CLASS=gp3-csi \
+  LLM_MODEL_NAME=meta-llama/Llama-3.1-8B-Instruct \
+  HF_TOKEN=<token>
+```
+
+> `deploy-all` automatically deploys vLLM in-cluster when `LLM_URL` is not set, waits for the `InferenceService` to be `Ready`, then proceeds with the rest of the stack.
+
+### What deploy-all does
+
+The command runs the following phases in order:
+
+| Phase | What happens |
+|-------|-------------|
+| `deploy-infra` | Creates namespace → deploys object storage (S4) + PostgreSQL → uploads datasets → deploys and verifies the KFP pipeline server (DSPA) |
+| `run-pipelines` | Submits three KFP training pipelines (churn, fraud, QoE) and waits for all to succeed |
+| `maybe-deploy-llm` | Local LLM only: deploys vLLM via `llm-service` Helm chart and waits for `InferenceService` Ready |
+| `deploy-app` | Deploys model serving (KServe), scoring job, data-fetch, predictor, OGX-AI agent, backend, and frontend |
+
+Run serially, with no parallel `-j` setting in the command or `MAKEFLAGS`, so the prerequisite targets execute in order.
+
+### Optional parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `NAMESPACE` | `telco-revenue-assurance-agent` | Target OpenShift project |
+| `PGVECTOR_PASSWORD` | `change-me` | Password for the PostgreSQL instance |
+| `S3_ACCESS_KEY` | `s4admin` | S3 access key for aws-compatible-storage |
+| `S3_SECRET_KEY` | `s4secret` | S3 secret key for aws-compatible-storage |
 
 ### Verify and open the dashboard
 
@@ -269,12 +298,24 @@ oc get route frontend -n "$NAMESPACE" -o jsonpath='https://{.spec.host}{"\n"}'
 
 Open the URL and follow the [usage walkthrough](#usage). If scoring has completed but metrics are missing, see [Scoring job completes but dashboard shows no metrics](#scoring-job-completes-but-dashboard-shows-no-metrics).
 
+## Optional components
+
+### Data Generator
+
+The `data-generator/` directory contains a standalone Kubernetes Job that generates synthetic telco customer and transaction records and writes them directly into PostgreSQL. It is **not needed for a standard deployment** — the pre-seeded pgvector image already includes a representative dataset — but it is useful if you want to:
+
+- Regenerate the dataset with a different size or distribution.
+- Experiment with custom data schemas or fraud/churn ratios.
+- Understand how the synthetic data is produced (Faker-based Python scripts with configurable customer profiles, billing records, and network QoE events).
+
+**How it works:** the Job connects to the PostgreSQL instance, drops and recreates the schema, then inserts a configurable number of customers (`NUM_CUSTOMERS`, default 10,000) along with associated CDRs, invoices, and QoE measurements. Each customer is assigned a randomised risk profile that drives the churn, fraud, and QoE scores the ML pipelines are trained against.
+
 ## Delete
 
 The root `undeploy-all` target removes the application, S4, and the local LLM, and deletes **all PVCs in `$NAMESPACE`**. This removes persisted database and S4 data in the default configuration; the namespace itself is retained.
 
 ```bash
-make undeploy-all NAMESPACE="$NAMESPACE"
+make undeploy-all NAMESPACE=<namespace>
 ```
 
 ## Troubleshooting
@@ -301,17 +342,6 @@ oc get inferenceservice -n $NAMESPACE
 ```
 
 If pipelines have completed and models are still not ready, check that the `my-data-connection` secret points to the correct S4 S3 API endpoint and bucket.
-
----
-
-### Pipeline base image build fails
-
-Ensure the OCP internal registry is enabled and the `pipeline-base` BuildConfig was applied:
-
-```bash
-oc get buildconfig pipeline-base -n $NAMESPACE
-oc logs bc/pipeline-base -n $NAMESPACE
-```
 
 ---
 
