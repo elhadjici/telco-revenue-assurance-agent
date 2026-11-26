@@ -14,7 +14,6 @@ Detect churn risk, billing fraud, and network QoE issues using a conversational 
 - [Optional components](#optional-components)
 - [Delete](#delete)
 - [Troubleshooting](#troubleshooting)
-- [Reference](#reference)
 - [Tags](#tags)
 
 ## Description
@@ -375,14 +374,6 @@ The backend caches metrics at startup. Restart the backend pod after the scoring
 ```bash
 oc rollout restart deployment/backend -n $NAMESPACE
 ```
-
-## Reference
-
-| Resource | Description |
-|---|---|
-| [Data Generator](data-generator/README.md) | Synthetic data generation parameters and seeding options |
-| [Prediction Tools](tools/predictor/README.md) | Prediction service configuration, model URLs, and TLS setup |
-| [KFP Pipelines](demo/pipelines/) | Kubeflow Pipeline definitions for model training |
 
 ## Tags
 
